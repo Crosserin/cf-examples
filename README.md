@@ -1,73 +1,114 @@
-# cf-examples
+# cf-examples 🔴
 
-A choose-your-own-adventure portfolio showcasing what the Cloudflare edge can actually do. Built by Erin Cross for [X = Consulting](https://xconsultingwork.com).
+> Nine live examples running on Cloudflare's edge. Pure CSS art, edge AI, RAG, solar engineering, atmospheric data. One repo, one deploy, no servers to babysit.
 
-Live: https://cf-examples.pages.dev
+**→ [cf-examples.pages.dev](https://cf-examples.pages.dev)** — pick a pill.
 
-## The architecture
+---
 
-This is a narrative portfolio, not a linear feature list. Visitors land on a Matrix-framed choice (red pill / blue pill), and from there explore three paths:
+## 👋 Who made this
+
+I'm **Erin Cross** — IT consultant, ex-telecom, ex-SEO-manager, currently running **[X = Consulting](https://xconsultingwork.com)** out of Portland, Oregon. I build at the seam between hands-on hardware and cloud-native: I'll rack a server in the morning, debug an Intune policy at lunch, and ship a Cloudflare Worker by dinner.
+
+This repo is my answer to the question *"so what do you actually do?"* Every example here is a real pattern I'd reach for on a client problem. The site is meant to be three things at once:
+
+- 🎯 A **portfolio** — real code, not slide decks
+- 📚 A **reference** — when someone asks "can we do X at the edge?" I point them here
+- 🧪 A **sandbox** — where ideas go to prove they work before they become client projects
+
+Feel free to fork, steal patterns, or just poke around.
+
+---
+
+## 🧭 The three paths
+
+The site is split into three "paths" because I don't fit neatly into one bucket, and neither do the problems I solve.
+
+### 🎨 Art — pure front-end craft
+CSS and vanilla JS pushed to their edges, zero frameworks. For when the brief is *make it feel good.*
+
+| Work | What it demonstrates |
+|------|---------------------|
+| **Cityscape, 3am** | A night skyline with drifting clouds, animated windows, and a plane crossing the horizon. Every pixel is a `<div>`. |
+| **Kinetic glyphs** | Typography that breathes with your scroll position. ~40 lines of JS driving a single CSS custom property. |
+| **Field of particles** | ~220 canvas particles flocking toward your cursor with live sliders for attract / damping / trail. No libraries. |
+
+### 🤖 Machine — edge AI
+Llama, embeddings, vision models, RAG. All on Workers AI, all on Cloudflare's GPUs, all without a single call to an external API.
+
+| Work | What it demonstrates |
+|------|---------------------|
+| **The Oracle** | Streaming chat with Llama 3.1 8B over server-sent events. Tokens arrive as the model generates them. |
+| **Sight** | Drop an image → Pages Function stores it in R2 → runs ResNet-50 for classification and uform-gen2 for a caption → returns tags with confidence bars, caption, and R2 key. |
+| **Ghost in the corpus** | RAG over a 12-passage knowledge base. Embeds your query with BGE, cosine-matches against Float32Array vectors stored as BLOBs in D1, and streams a Llama synthesis citing the top 3 sources inline. |
+
+### 🧭 Research — applied tools
+Real client problems, stripped of specifics, made public.
+
+| Work | What it demonstrates |
+|------|---------------------|
+| **Photon** | Photovoltaic string sizing calculator. NEC 690.7 / 690.8 compliant. Plug in module specs and design temperatures; get max-cold-Voc and min-hot-Vmp math with valid series/parallel combinations. |
+| **Geo-forensics** | What Cloudflare's edge already knows about a visitor before any JavaScript runs. Country, city, TLS version, ASN, data-center airport code — all read from `request.cf` server-side. |
+| **Signal** | Live atmospheric readings — temperature, pressure, humidity, wind vector — pulled from Open-Meteo through a Pages Function so the browser never hits the upstream directly. |
+
+---
+
+## 🛠️ Stack
+
+| Layer | Tech |
+|-------|------|
+| **Hosting** | Cloudflare Pages |
+| **Backend** | Pages Functions (TypeScript) |
+| **AI** | Workers AI — Llama 3.1 8B, BGE-base-en-v1.5, ResNet-50, uform-gen2-qwen-500m |
+| **Data** | D1 (SQLite, corpus + embeddings) · R2 (image uploads) · KV (bound, reserved) |
+| **Fonts** | Inter · JetBrains Mono · Fraunces |
+| **Frontend** | Hand-written HTML / CSS / JS. No framework. No build step. No transpilation. |
+
+**Cost to run:** effectively $0/mo on Cloudflare's free tier. This whole thing can handle millions of requests before anything becomes metered.
+
+---
+
+## 🏗️ Architecture
 
 ```
-/                    landing — choose your reality
-/red/                the three paths reveal
-  /art/              path i  — HTML & CSS craft, motion, typography
-  /machine/          path ii — AI running at the edge (Workers AI)
-  /research/         path iii — applied engineering tools
+Browser
+   │
+   ▼
+Cloudflare Pages  (static HTML + CSS + JS)
+   │
+   ├── /machine/oracle/api/chat         → Workers AI (Llama 3.1 8B, streaming)
+   ├── /machine/sight/api/see           → R2 (store)  +  Workers AI (ResNet + uform)
+   ├── /machine/ghost/api/ask           → Workers AI (BGE) → D1 (cosine) → Llama stream
+   ├── /research/photon/api/string-size → Pure math (NEC 690.7 / 690.8)
+   ├── /research/geo/api/whoami         → request.cf edge properties
+   └── /research/signal/api/atmosphere  → fetch → Open-Meteo (cached 5 min)
 ```
 
-Each path contains three "works" (examples). One per path is live at each deploy; the others unlock over time.
+Every function sits at `functions/<path>/api/<name>.ts`. Filesystem mirrors URL path. No route config, no server setup.
 
-## Current state (chapter one)
+---
 
-**Landing / hub:** `/`, `/blue/`, `/red/` — all live
-
-**The art path:**
-- `cityscape/` — Pure-CSS night skyline with parallax, drifting clouds, a crossing plane, animated windows. No images, no SVG, no canvas. ✓
-
-**The machine path:**
-- `oracle/` — Streaming chat with Llama 3.1 8B on Cloudflare Workers AI. No external API. ✓
-
-**The research path:**
-- `photon/` — NEC-compliant PV string sizing calculator. ✓
-
-## Stack
-
-- Cloudflare Pages (static hosting + edge)
-- Cloudflare Pages Functions (serverless, colocated with the page)
-- Cloudflare Workers AI — `@cf/meta/llama-3.1-8b-instruct` streaming
-- Cloudflare KV, D1, R2 (wired, used as examples unlock)
-
-## Structure
-
-```
-/functions/                       all Pages Functions at repo root
-  /machine/oracle/api/chat.ts     POST /machine/oracle/api/chat
-  /research/photon/api/string-size.ts
-
-/machine/oracle/                  frontend for the Oracle
-/research/photon/                 frontend for Photon
-...
-```
-
-Pages Functions mirror the URL path from the `functions/` root. So `functions/machine/oracle/api/chat.ts` serves `/machine/oracle/api/chat`.
-
-## Local dev
+## 🏃 Run it yourself
 
 ```bash
-wrangler pages dev .
+git clone https://github.com/Crosserin/cf-examples.git
+cd cf-examples
+npx wrangler pages dev .
 ```
 
-## Deploy
+Most pages work locally without any bindings. The examples that touch D1 / KV / R2 / AI need a `wrangler.toml` with your own namespace IDs, or the `--local` flag to use Miniflare's in-memory simulators. See `wrangler.toml` for the shape.
 
-Connected to this GitHub repo via Cloudflare Pages. Every push to `main` auto-deploys.
-
-Manual deploy:
+To populate the ghost RAG corpus after deploy:
 
 ```bash
-wrangler pages deploy . --project-name=cf-examples --branch=main
+curl -X POST https://cf-examples.pages.dev/machine/ghost/api/seed
 ```
 
-## License
+---
 
-MIT.
+## 🔗 Reach me
+
+- 🌐 **[xconsultingwork.com](https://xconsultingwork.com)** — consulting, full-stack builds, homelab design, IT strategy
+- 🐙 **GitHub** — [@Crosserin](https://github.com/Crosserin)
+
+*Build. Launch. Grow.*
