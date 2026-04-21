@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sentinel · AI contact triage · cf-examples</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+:root{
+  --bg:#0a0a0a;--ink:#e8e5de;--dim:#8a857c;--faint:#3a3632;
+  --brass:#b8a47e;--danger:#c4342a;--rule:#1f1c18;--panel:#0f0e0c;
+  --sales:#f5a623;--support:#4ac7d6;--partnership:#a78bfa;--spam:#c4342a;--other:#7fb069;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+nav{padding:18px 32px;display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--rule)}
+nav a{color:var(--brass);text-decoration:none}
+nav a:hover{color:var(--danger)}
+nav .path em{color:var(--danger);font-style:normal;padding:0 6px}
+main{max-width:960px;margin:0 auto;padding:48px 32px 80px}
+.hdr{margin-bottom:36px}
+.file-id{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.3em;color:var(--brass);margin-bottom:16px}
+h1{font-family:'Playfair Display',serif;font-weight:400;font-size:clamp(40px,6vw,68px);line-height:1.05;margin-bottom:14px}
+h1 em{font-style:italic;color:var(--brass)}
+.sub{font-size:15px;color:var(--dim);max-width:620px;line-height:1.65}
+.sub strong{color:var(--ink);font-weight:500}
+.workbench{display:grid;grid-template-columns:1fr;gap:24px}
+@media (min-width:900px){.workbench{grid-template-columns:1fr 1fr}}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:24px}
+.panel-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.25em;color:var(--brass);text-transform:uppercase;margin-bottom:18px}
+.panel-label::before{content:'◆ ';color:var(--danger)}
+.field{margin-bottom:16px}
+label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--dim);text-transform:uppercase;margin-bottom:6px}
+label.req::after{content:' *';color:var(--danger)}
+input,textarea{width:100%;padding:10px 14px;background:#080706;border:1px solid var(--rule);color:var(--ink);font-family:'Inter',sans-serif;font-size:14px;border-radius:4px;outline:none;transition:border-color 0.15s}
+textarea{min-height:120px;resize:vertical;line-height:1.55}
+input:focus,textarea:focus{border-color:var(--brass)}
+input::placeholder,textarea::placeholder{color:var(--faint)}
+.submit-btn{width:100%;padding:14px;margin-top:8px;background:var(--brass);color:var(--bg);border:none;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.25em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:all 0.15s}
+.submit-btn:hover:not(:disabled){background:#d4bd8f;transform:translateY(-1px)}
+.submit-btn:disabled{opacity:0.4;cursor:wait}
+.triage-panel{background:#080706;border:1px solid var(--rule);border-left:3px solid var(--brass);border-radius:4px;padding:20px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.65;min-height:300px}
+.triage-panel .placeholder{color:var(--faint);font-style:italic;font-family:'Playfair Display',serif;font-size:14px}
+.triage-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--rule)}
+.triage-row:last-child{border-bottom:none}
+.triage-row .k{color:var(--dim);letter-spacing:0.1em;text-transform:uppercase;font-size:10px}
+.triage-row .v{color:var(--ink);text-align:right;max-width:60%}
+.badge{display:inline-block;padding:3px 10px;border-radius:3px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600}
+.badge-sales{background:rgba(245,166,35,0.15);color:var(--sales);border:1px solid rgba(245,166,35,0.4)}
+.badge-support{background:rgba(74,199,214,0.15);color:var(--support);border:1px solid rgba(74,199,214,0.4)}
+.badge-partnership{background:rgba(167,139,250,0.15);color:var(--partnership);border:1px solid rgba(167,139,250,0.4)}
+.badge-spam{background:rgba(196,52,42,0.15);color:var(--spam);border:1px solid rgba(196,52,42,0.4)}
+.badge-other{background:rgba(127,176,105,0.15);color:var(--other);border:1px solid rgba(127,176,105,0.4)}
+.urg-high{color:var(--danger)}.urg-medium{color:var(--sales)}.urg-low{color:var(--other)}
+.reasoning{margin-top:16px;padding:12px;background:rgba(184,164,126,0.04);border-radius:4px;font-family:'Inter',sans-serif;font-size:13px;color:var(--dim);line-height:1.6;font-style:italic}
+.reasoning::before{content:'// vibe check: ';color:var(--brass);font-style:normal;font-family:'JetBrains Mono',monospace;font-size:10px}
+.draft{margin-top:20px;padding:16px;background:#0a0a0a;border:1px solid var(--rule);border-radius:4px}
+.draft-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--brass);text-transform:uppercase;margin-bottom:10px}
+.draft-body{font-family:'Inter',sans-serif;font-size:13.5px;line-height:1.65;color:var(--ink);white-space:pre-wrap}
+.status{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);letter-spacing:0.12em;margin-top:14px;padding:10px 14px;background:var(--panel);border:1px solid var(--rule);border-radius:4px;display:none}
+.status.active{display:block}
+.status::before{content:'● ';color:var(--brass);animation:pulse 1s infinite}
+.status.err{color:var(--danger);border-color:var(--danger)}
+.status.err::before{content:'✗ ';animation:none}
+@keyframes pulse{50%{opacity:0.4}}
+footer{padding:20px 32px;border-top:1px solid var(--rule);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--faint);letter-spacing:0.1em;text-transform:uppercase;text-align:center}
+</style>
+</head>
+<body><nav>
+  <span class="path"><a href="/">index</a><em>/</em><a href="/red/">red</a><em>/</em><a href="/red/#machine">machine</a><em>/</em>sentinel</span>
+  <span>work iv</span>
+</nav>
+
+<main>
+  <div class="hdr">
+    <div class="file-id">EXAMPLE · MACHINE · SENTINEL</div>
+    <h1>The <em>sentinel</em>.</h1>
+    <p class="sub">Submit a message. An <strong>AI classifier</strong> reads it &mdash; flags category, reads urgency, drafts a reply. All stored to <strong>D1</strong>. The inbox that pre-reads itself.</p>
+  </div>
+
+  <div class="workbench">
+    <div class="panel">
+      <div class="panel-label">01 · contact form</div>
+
+      <div class="field">
+        <label for="name" class="req">Name</label>
+        <input type="text" id="name" placeholder="Jamie Rivera" autocomplete="name">
+      </div>
+
+      <div class="field">
+        <label for="email" class="req">Email</label>
+        <input type="email" id="email" placeholder="jamie@acme.co" autocomplete="email">
+      </div>
+
+      <div class="field">
+        <label for="company">Company</label>
+        <input type="text" id="company" placeholder="Acme Industries" autocomplete="organization">
+      </div>
+
+      <div class="field">
+        <label for="message" class="req">Message</label>
+        <textarea id="message" placeholder="Tell us what you need. The more specific, the better the AI can route it."></textarea>
+      </div>
+
+      <button id="submit" class="submit-btn">Transmit to sentinel</button>
+      <div id="status" class="status">preparing...</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">02 · ai triage</div>
+      <div class="triage-panel" id="triage">
+        <div class="placeholder">The sentinel stands watch.<br>Submit a message to see the analysis.</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>Erin Cross &middot; cf-examples &middot; <a href="https://github.com/Crosserin/cf-examples" style="color:var(--faint);">source</a></footer><script>
+const $=(id)=>document.getElementById(id);
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+$('submit').onclick=async()=>{
+  const name=$('name').value.trim();
+  const email=$('email').value.trim();
+  const company=$('company').value.trim();
+  const message=$('message').value.trim();
+  if(!name||!email||!message){
+    if(!name)$('name').focus();else if(!email)$('email').focus();else $('message').focus();
+    return;
+  }
+  if(message.length<10){$('status').classList.add('active','err');$('status').textContent='message too short — give the AI something to work with';return;}
+
+  const btn=$('submit'),status=$('status'),triage=$('triage');
+  btn.disabled=true;
+  status.classList.remove('err');status.classList.add('active');
+  status.textContent='dispatching to sentinel...';
+  triage.innerHTML='<div class="placeholder">analyzing...</div>';
+
+  try{
+    const r=await fetch('submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,email,company,message})
+    });
+    if(!r.ok)throw new Error(`${r.status}: ${await r.text()}`);
+    const data=await r.json();
+    renderTriage(data);
+    status.textContent=`complete &middot; id #${data.id} &middot; ${data.timing_ms}ms`;
+    setTimeout(()=>status.classList.remove('active'),4000);
+    // clear form
+    $('name').value=$('email').value=$('company').value=$('message').value='';
+  }catch(e){
+    status.classList.add('err');
+    status.textContent=`failed: ${e.message}`;
+    triage.innerHTML='<div class="placeholder">analysis failed. try again?</div>';
+  }finally{
+    btn.disabled=false;
+  }
+};
+
+function renderTriage(d){
+  const cat=(d.category||'other').toLowerCase();
+  const urg=(d.urgency||'low').toLowerCase();
+  const topics=(d.key_topics||[]).map(t=>`<span class="badge badge-other">${escapeHtml(t)}</span>`).join(' ');
+
+  $('triage').innerHTML=`
+    <div class="triage-row">
+      <span class="k">Category</span>
+      <span class="v"><span class="badge badge-${cat}">${escapeHtml(cat)}</span></span>
+    </div>
+    <div class="triage-row">
+      <span class="k">Urgency</span>
+      <span class="v urg-${urg}">${escapeHtml(urg.toUpperCase())}</span>
+    </div>
+    <div class="triage-row">
+      <span class="k">Stored as</span>
+      <span class="v">contact #${d.id}</span>
+    </div>
+    ${d.key_topics&&d.key_topics.length?`<div class="triage-row"><span class="k">Topics</span><span class="v">${topics}</span></div>`:''}
+    ${d.reasoning?`<div class="reasoning">${escapeHtml(d.reasoning)}</div>`:''}
+    ${d.draft_reply?`<div class="draft"><div class="draft-label">✍ suggested reply</div><div class="draft-body">${escapeHtml(d.draft_reply)}</div></div>`:''}
+  `;
+}
+</script>
+</body>
+</html>

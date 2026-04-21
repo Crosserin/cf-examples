@@ -106,6 +106,22 @@
     background-color: #0a0a0a;
   }
 
+  .sentinel-thumb {
+    background: #0a0a0a;
+    position: relative; overflow: hidden;
+  }
+  .sentinel-thumb::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 38px, rgba(251,44,54,0.2) 38px 40px),
+      repeating-linear-gradient(0deg, transparent 0 28px, rgba(184,164,126,0.12) 28px 29px);
+  }
+  .sentinel-thumb::after {
+    content: '◉'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    font-size: 44px; color: #fb2c36;
+    text-shadow: 0 0 18px rgba(251,44,54,0.8), 0 0 36px rgba(251,44,54,0.4);
+  }
+
   .work-body { padding: 18px 20px 20px; flex: 1; display: flex; flex-direction: column; }
   .work-num {
     font-family: var(--mono); font-size: 10px; color: var(--red);
@@ -181,6 +197,16 @@
       <div class="work-title">Ghost in the corpus</div>
       <div class="work-desc">Semantic search over a knowledge base using edge embeddings, D1-stored vectors, and Llama synthesis. Ask anything; the model finds relevant passages and answers.</div>
       <div class="work-meta"><span>rag</span><span>live</span></div>
+    </div>
+  </a>
+
+  <a class="work" href="/machine/sentinel/">
+    <div class="work-thumb sentinel-thumb"></div>
+    <div class="work-body">
+      <div class="work-num">work iv · 004</div>
+      <div class="work-title">The sentinel</div>
+      <div class="work-desc">AI contact triage. Llama classifies every message (sales / support / partnership / spam), rates urgency, drafts a reply. D1-backed. The inbox that reads itself.</div>
+      <div class="work-meta"><span>ai + d1</span><span>live</span></div>
     </div>
   </a>
 

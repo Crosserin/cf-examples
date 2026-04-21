@@ -112,6 +112,23 @@
     opacity: 0.3;
   }
 
+  .w-muse {
+    background: #f4efe4;
+    position: relative;
+    overflow: hidden;
+  }
+  .w-muse::before {
+    content: ''; position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(135deg, transparent 0 8px, rgba(10,10,10,0.08) 8px 9px),
+      repeating-linear-gradient(45deg, transparent 0 12px, rgba(251,44,54,0.06) 12px 13px);
+  }
+  .w-muse::after {
+    content: '✎'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    font-family: 'Playfair Display', serif; font-size: 54px; color: rgba(10,10,10,0.65);
+    text-shadow: 2px 2px 0 rgba(251,44,54,0.35);
+  }
+
   .work-body { padding: 18px 20px 20px; flex: 1; display: flex; flex-direction: column; }
   .work-num {
     font-family: var(--mono); font-size: 10px; color: var(--red);
@@ -192,6 +209,16 @@
       <div class="work-title">Field of particles</div>
       <div class="work-desc">An interactive particle field that flocks toward your cursor. Vanilla JS, zero dependencies.</div>
       <div class="work-meta"><span>interactive</span><span>live</span></div>
+    </div>
+  </a>
+
+  <a class="work" href="/art/muse/">
+    <div class="work-thumb w-muse"></div>
+    <div class="work-body">
+      <div class="work-num">work iv · 004</div>
+      <div class="work-title">The muse</div>
+      <div class="work-desc">Sketch an idea. A vision model reads your drawing, a generative model interprets it. Canvas input → Workers AI → R2.</div>
+      <div class="work-meta"><span>ai pipeline</span><span>live</span></div>
     </div>
   </a>
 

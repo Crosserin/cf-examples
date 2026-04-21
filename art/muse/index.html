@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>muse · sketch-to-image · cf-examples</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+:root {
+  --bg:#0a0a0a; --ink:#e8e5de; --dim:#8a857c; --faint:#3a3632;
+  --brass:#b8a47e; --danger:#c4342a; --rule:#1f1c18; --panel:#0f0e0c;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+nav{padding:18px 32px;display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--rule)}
+nav a{color:var(--brass);text-decoration:none}
+nav a:hover{color:var(--danger)}
+nav .path em{color:var(--danger);font-style:normal;padding:0 6px}
+main{max-width:1100px;margin:0 auto;padding:48px 32px 80px}
+.hdr{margin-bottom:36px}
+.file-id{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.3em;color:var(--brass);margin-bottom:16px}
+h1{font-family:'Playfair Display',serif;font-weight:400;font-size:clamp(40px,6vw,68px);line-height:1.05;margin-bottom:14px}
+h1 em{font-style:italic;color:var(--brass)}
+.sub{font-size:15px;color:var(--dim);max-width:620px;line-height:1.65}
+.sub strong{color:var(--ink);font-weight:500}
+.workbench{display:grid;grid-template-columns:1fr;gap:24px}
+@media (min-width:820px){.workbench{grid-template-columns:1fr 1fr}}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:22px;position:relative}
+.panel-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.25em;color:var(--brass);text-transform:uppercase;margin-bottom:14px}
+.panel-label::before{content:'◆ ';color:var(--danger)}
+.canvas-wrap{position:relative;aspect-ratio:1/1;background:#fafaf5;border-radius:4px;overflow:hidden;cursor:crosshair}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+.canvas-tools{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.canvas-tools button{padding:6px 12px;background:transparent;border:1px solid var(--rule);border-radius:3px;color:var(--dim);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;transition:all 0.15s}
+.canvas-tools button:hover{border-color:var(--brass);color:var(--brass)}
+.canvas-tools button.active{border-color:var(--danger);color:var(--danger)}
+textarea{width:100%;padding:12px 14px;background:#080706;border:1px solid var(--rule);color:var(--ink);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;border-radius:4px;outline:none;resize:vertical;min-height:90px;transition:border-color 0.15s}
+textarea:focus{border-color:var(--brass)}
+textarea::placeholder{color:var(--faint)}
+.submit-btn{width:100%;padding:14px;margin-top:14px;background:var(--brass);color:var(--bg);border:none;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.25em;text-transform:uppercase;font-weight:600;cursor:pointer;transition:all 0.15s}
+.submit-btn:hover:not(:disabled){background:#d4bd8f;transform:translateY(-1px)}
+.submit-btn:disabled{opacity:0.4;cursor:wait}
+#results{margin-top:48px;display:none}
+#results.show{display:block}
+.pipeline{display:grid;grid-template-columns:1fr;gap:20px;margin-top:20px}
+@media (min-width:980px){.pipeline{grid-template-columns:1fr 1fr 1fr}}
+.stage{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:20px;position:relative}
+.stage-num{position:absolute;top:12px;right:14px;font-family:'Playfair Display',serif;font-size:28px;color:var(--faint);font-style:italic}
+.stage-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--brass);text-transform:uppercase;margin-bottom:8px}
+.stage-title{font-family:'Playfair Display',serif;font-size:18px;margin-bottom:14px}
+.stage img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:4px;background:#fafaf5}
+.stage .text{font-size:13px;line-height:1.65;color:var(--dim);background:#080706;padding:12px;border-radius:4px;border-left:2px solid var(--brass)}
+.status{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);letter-spacing:0.12em;margin-top:12px;padding:10px 14px;background:var(--panel);border:1px solid var(--rule);border-radius:4px;display:none}
+.status.active{display:block}
+.status::before{content:'● ';color:var(--brass);animation:pulse 1s infinite}
+.status.err{color:var(--danger);border-color:var(--danger)}
+.status.err::before{content:'✗ ';animation:none;color:var(--danger)}
+@keyframes pulse{50%{opacity:0.4}}
+footer{padding:20px 32px;border-top:1px solid var(--rule);font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--faint);letter-spacing:0.1em;text-transform:uppercase;text-align:center}
+</style>
+</head>
+<body><nav>
+  <span class="path"><a href="/">index</a><em>/</em><a href="/red/">red</a><em>/</em><a href="/red/#art">art</a><em>/</em>muse</span>
+  <span>work iv</span>
+</nav>
+
+<main>
+  <div class="hdr">
+    <div class="file-id">EXAMPLE · ART · MUSE</div>
+    <h1>The <em>muse</em>.</h1>
+    <p class="sub">Sketch an idea. Describe what you meant. A <strong>vision model</strong> reads your drawing, a <strong>generative model</strong> interprets both. The result is somewhere between your hand and the machine's.</p>
+  </div>
+
+  <div class="workbench">
+    <div class="panel">
+      <div class="panel-label">01 · sketch</div>
+      <div class="canvas-wrap">
+        <canvas id="canvas"></canvas>
+      </div>
+      <div class="canvas-tools">
+        <button id="toolPen" class="active">✎ pen</button>
+        <button id="toolEraser">⌫ eraser</button>
+        <button id="toolClear">⟲ clear</button>
+        <button id="toolThick">⬤ thick</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-label">02 · description</div>
+      <textarea id="prompt" placeholder="describe what you're sketching... be evocative, be specific. e.g., 'a lone figure walking on a ridge at sunset, wide open sky, cinematic'"></textarea>
+      <button id="submit" class="submit-btn">Submit to the muse</button>
+      <div id="status" class="status">preparing...</div>
+    </div>
+  </div>
+
+  <div id="results">
+    <div class="panel-label" style="margin-top: 48px;">03 · the pipeline</div>
+    <div class="pipeline">
+      <div class="stage">
+        <div class="stage-num">i</div>
+        <div class="stage-label">your sketch</div>
+        <div class="stage-title">Input</div>
+        <img id="r1img" alt="your sketch">
+      </div>
+      <div class="stage">
+        <div class="stage-num">ii</div>
+        <div class="stage-label">vision model reading</div>
+        <div class="stage-title">Interpretation</div>
+        <div class="text" id="r2text">&mdash;</div>
+      </div>
+      <div class="stage">
+        <div class="stage-num">iii</div>
+        <div class="stage-label">generated image</div>
+        <div class="stage-title">Manifestation</div>
+        <img id="r3img" alt="AI generated">
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>Erin Cross &middot; cf-examples &middot; <a href="https://github.com/Crosserin/cf-examples" style="color:var(--faint);">source</a></footer><script>
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let drawing=false,last=null,tool='pen',lineWidth=3;
+
+function resizeCanvas(){
+  const rect=canvas.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=rect.width*dpr;
+  canvas.height=rect.height*dpr;
+  ctx.scale(dpr,dpr);
+  ctx.fillStyle='#fafaf5';
+  ctx.fillRect(0,0,rect.width,rect.height);
+  ctx.lineCap='round';
+  ctx.lineJoin='round';
+  ctx.strokeStyle='#1a1a1a';
+}
+resizeCanvas();
+window.addEventListener('resize',resizeCanvas);
+
+function pos(e){
+  const rect=canvas.getBoundingClientRect();
+  const t=e.touches?e.touches[0]:e;
+  return{x:t.clientX-rect.left,y:t.clientY-rect.top};
+}
+function start(e){e.preventDefault();drawing=true;last=pos(e);}
+function move(e){
+  if(!drawing)return;e.preventDefault();
+  const p=pos(e);
+  ctx.strokeStyle=tool==='eraser'?'#fafaf5':'#1a1a1a';
+  ctx.lineWidth=tool==='eraser'?lineWidth*5:lineWidth;
+  ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();
+  last=p;
+}
+function end(){drawing=false;last=null;}
+canvas.addEventListener('mousedown',start);
+canvas.addEventListener('mousemove',move);
+canvas.addEventListener('mouseup',end);
+canvas.addEventListener('mouseleave',end);
+canvas.addEventListener('touchstart',start,{passive:false});
+canvas.addEventListener('touchmove',move,{passive:false});
+canvas.addEventListener('touchend',end);
+
+document.getElementById('toolPen').onclick=(e)=>{
+  tool='pen';lineWidth=3;
+  document.querySelectorAll('.canvas-tools button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+};
+document.getElementById('toolEraser').onclick=(e)=>{
+  tool='eraser';
+  document.querySelectorAll('.canvas-tools button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+};
+document.getElementById('toolThick').onclick=(e)=>{
+  tool='pen';lineWidth=8;
+  document.querySelectorAll('.canvas-tools button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+};
+document.getElementById('toolClear').onclick=()=>{
+  const rect=canvas.getBoundingClientRect();
+  ctx.fillStyle='#fafaf5';
+  ctx.fillRect(0,0,rect.width,rect.height);
+};
+
+document.getElementById('submit').onclick=async()=>{
+  const prompt=document.getElementById('prompt').value.trim();
+  if(!prompt){document.getElementById('prompt').focus();return;}
+  const btn=document.getElementById('submit');
+  const status=document.getElementById('status');
+  btn.disabled=true;
+  status.classList.remove('err');status.classList.add('active');
+  status.textContent='analyzing sketch with vision model...';
+  const sketchDataUrl=canvas.toDataURL('image/png');
+  try{
+    status.textContent='dispatching to the muse...';
+    const r=await fetch('submit',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({sketch:sketchDataUrl,prompt})
+    });
+    if(!r.ok)throw new Error(`${r.status}: ${await r.text()}`);
+    const data=await r.json();
+    document.getElementById('r1img').src=sketchDataUrl;
+    document.getElementById('r2text').textContent=data.vision_description||'(no interpretation returned)';
+    if(data.generated_key){
+      document.getElementById('r3img').src=`image/${data.generated_key}`;
+    }
+    document.getElementById('results').classList.add('show');
+    status.textContent=`complete &middot; ${data.timing_ms}ms total`;
+    setTimeout(()=>status.classList.remove('active'),3000);
+    document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){
+    status.classList.add('err');
+    status.textContent=`failed: ${e.message}`;
+  }finally{
+    btn.disabled=false;
+  }
+};
+</script>
+</body>
+</html>
