@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>06 · css-art-rack</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #0f0d0b; --ink: #ede6d8; --ink-dim: #8a8173; --accent: #ff7a1a;
+    --rack-metal: #1a1a1c; --rack-metal-lit: #2a2a2e; --rack-edge: #35353a;
+    --led-green: #4ade80; --led-amber: #fbbf24; --led-red: #f87171; --led-blue: #60a5fa;
+    --serif: 'Fraunces', serif; --mono: 'JetBrains Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--mono);
+    min-height: 100vh; padding: 60px 20px; display: flex; flex-direction: column;
+    align-items: center; gap: 40px;
+  }
+  .header { text-align: center; max-width: 600px; }
+  .num { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+  h1 { font-family: var(--serif); font-weight: 300; font-size: 48px; letter-spacing: -0.02em; margin-bottom: 12px; }
+  h1 em { font-style: italic; color: var(--accent); }
+  .subtitle { font-size: 13px; color: var(--ink-dim); line-height: 1.6; }
+
+  /* ——— the rack ——— */
+  .rack {
+    width: 340px;
+    background: linear-gradient(180deg, var(--rack-edge), var(--rack-metal) 4%, var(--rack-metal) 96%, var(--rack-edge));
+    border: 2px solid var(--rack-edge);
+    border-radius: 6px;
+    padding: 16px 20px;
+    box-shadow:
+      0 40px 80px rgba(0,0,0,0.6),
+      inset 0 2px 0 rgba(255,255,255,0.04),
+      inset 0 -2px 0 rgba(0,0,0,0.4);
+    position: relative;
+  }
+  .rack::before, .rack::after {
+    content: ''; position: absolute; width: 4px; height: 4px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #666, #222);
+    box-shadow: 0 1px 1px rgba(0,0,0,0.6);
+  }
+  .rack::before { top: 8px; left: 8px; }
+  .rack::after { top: 8px; right: 8px; }
+  .rack-holes { position: absolute; bottom: 8px; left: 8px; right: 8px; display: flex; justify-content: space-between; }
+  .rack-holes::before, .rack-holes::after {
+    content: ''; width: 4px; height: 4px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #666, #222);
+  }
+
+  /* ——— units ——— */
+  .unit {
+    background: linear-gradient(180deg, #1f1f22, #16161a);
+    border: 1px solid #0a0a0c;
+    border-radius: 3px;
+    margin-bottom: 6px;
+    padding: 0 10px;
+    display: flex; align-items: center; gap: 10px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    position: relative;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+  .unit-label { flex: 1; }
+  .unit-leds { display: flex; gap: 4px; }
+  .led {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--led-green);
+    box-shadow: 0 0 4px currentColor, inset 0 0 1px rgba(255,255,255,0.3);
+    color: var(--led-green);
+  }
+  .led.amber { background: var(--led-amber); color: var(--led-amber); }
+  .led.red { background: var(--led-red); color: var(--led-red); animation: blink 1.4s infinite; }
+  .led.blue { background: var(--led-blue); color: var(--led-blue); }
+  .led.off { background: #2a2a2e; color: transparent; box-shadow: inset 0 0 1px rgba(0,0,0,0.8); }
+  .led.pulse { animation: pulse 2s infinite; }
+
+  @keyframes blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.2; } }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ——— unit types ——— */
+  .unit-1u { height: 22px; }
+  .unit-2u { height: 46px; }
+  .unit-3u { height: 70px; }
+  .unit-4u { height: 94px; padding: 8px 10px; }
+
+  /* switch — has port indicators */
+  .switch { justify-content: space-between; }
+  .ports { display: flex; gap: 2px; }
+  .port {
+    width: 6px; height: 10px; background: #0a0a0c; border-radius: 1px;
+    position: relative; border: 1px solid #000;
+  }
+  .port.active::after {
+    content: ''; position: absolute; top: 1px; left: 1px; right: 1px;
+    height: 2px; background: var(--led-green); box-shadow: 0 0 3px var(--led-green);
+  }
+  .port.amber.active::after { background: var(--led-amber); box-shadow: 0 0 3px var(--led-amber); }
+
+  /* disk bays */
+  .bays { display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; flex: 1; height: 100%; padding: 4px 0; }
+  .bay {
+    background: linear-gradient(180deg, #0a0a0c, #1a1a1e);
+    border-radius: 1px; position: relative;
+    border: 1px solid #000;
+  }
+  .bay::after {
+    content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+    width: 3px; height: 3px; border-radius: 50%;
+    background: var(--led-green); box-shadow: 0 0 3px var(--led-green);
+  }
+  .bay.empty::after { background: transparent; box-shadow: none; }
+  .bay.active::after { animation: diskblink 0.3s infinite; }
+  @keyframes diskblink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  /* power supply */
+  .psu { background: linear-gradient(180deg, #141416, #0a0a0c); }
+  .fan {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: radial-gradient(circle, #2a2a2e 30%, #0a0a0c 31%);
+    border: 1px solid #000;
+    position: relative;
+    animation: spin 2s linear infinite;
+  }
+  .fan::before {
+    content: ''; position: absolute; inset: 2px; border-radius: 50%;
+    background: conic-gradient(from 0deg, #1a1a1c, #2a2a2e, #1a1a1c, #2a2a2e);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* blank spacer */
+  .blank { background: linear-gradient(180deg, #0a0a0c, #141418); }
+
+  /* ——— caption ——— */
+  .caption {
+    max-width: 380px; font-size: 11px; color: var(--ink-dim);
+    line-height: 1.7; text-align: center; letter-spacing: 0.02em;
+  }
+  .caption strong { color: var(--accent); font-weight: 500; }
+
+  .back { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .back a { color: var(--accent); text-decoration: none; }
+  .back a:hover { color: var(--ink); }
+
+  /* subtle floor shadow under rack */
+  .floor {
+    width: 380px; height: 40px; margin-top: -20px;
+    background: radial-gradient(ellipse at center, rgba(255,122,26,0.08), transparent 70%);
+    filter: blur(8px);
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="num">§ 06 — foundations</div>
+  <h1>css-<em>art-rack</em></h1>
+  <p class="subtitle">An illustrated 12U rack, rendered entirely in HTML and CSS. No images, no SVG, no JavaScript. Every blinking LED and spinning fan is a keyframe animation. Inspired by the Dell PowerEdge under my desk.</p>
+</header>
+
+<div class="rack">
+
+  <!-- Router 1U -->
+  <div class="unit unit-1u">
+    <span class="unit-label">edge router</span>
+    <span class="unit-leds">
+      <span class="led"></span>
+      <span class="led pulse"></span>
+      <span class="led amber"></span>
+    </span>
+  </div>
+
+  <!-- Switch 1U with ports -->
+  <div class="unit unit-1u switch">
+    <span class="unit-label">24-port switch</span>
+    <div class="ports">
+      <span class="port active"></span><span class="port active"></span><span class="port active"></span>
+      <span class="port active"></span><span class="port"></span><span class="port active"></span>
+      <span class="port amber active"></span><span class="port active"></span><span class="port"></span>
+      <span class="port active"></span><span class="port active"></span><span class="port"></span>
+    </div>
+  </div>
+
+  <!-- Blank 1U -->
+  <div class="unit unit-1u blank"></div>
+
+  <!-- Proxmox server 2U -->
+  <div class="unit unit-2u">
+    <span class="unit-label">proxmox · t340</span>
+    <span class="unit-leds">
+      <span class="led"></span>
+      <span class="led blue pulse"></span>
+      <span class="led"></span>
+      <span class="led amber"></span>
+    </span>
+  </div>
+
+  <!-- NAS 3U with disk bays -->
+  <div class="unit unit-3u">
+    <span class="unit-label" style="writing-mode: vertical-rl; transform: rotate(180deg); height: 100%; display: flex; align-items: center; flex: 0 0 auto;">synology · sierra</span>
+    <div class="bays">
+      <div class="bay active"></div><div class="bay active"></div>
+      <div class="bay"></div><div class="bay active"></div>
+      <div class="bay"></div><div class="bay"></div>
+      <div class="bay empty"></div><div class="bay empty"></div>
+    </div>
+  </div>
+
+  <!-- Blank 1U -->
+  <div class="unit unit-1u blank"></div>
+
+  <!-- UPS 2U -->
+  <div class="unit unit-2u">
+    <span class="unit-label">ups · 1500va</span>
+    <span class="unit-leds">
+      <span class="led"></span>
+      <span class="led"></span>
+      <span class="led off"></span>
+    </span>
+  </div>
+
+  <!-- PSU 1U with fan -->
+  <div class="unit unit-1u psu">
+    <span class="unit-label">pdu</span>
+    <span class="unit-leds">
+      <span class="led red"></span>
+    </span>
+    <div class="fan"></div>
+  </div>
+
+  <!-- Bottom blank -->
+  <div class="unit unit-1u blank"></div>
+
+  <div class="rack-holes"></div>
+</div>
+
+<div class="floor"></div>
+
+<p class="caption">
+  LEDs blink on <code style="color: var(--ink);">@keyframes</code>. The fan spins on a 2-second rotate loop. Disk activity indicators stagger so it actually looks like things are happening. One <strong>red blinking LED</strong> on the PDU because something is always failing somewhere.
+</p>
+
+<div class="back"><a href="/">← back to index</a></div>
+
+</body>
+</html>

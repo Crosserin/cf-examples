@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cf-examples — Erin Cross</title>
+<meta name="description" content="Thirty worked examples on the Cloudflare edge platform. By Erin Cross.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&family=JetBrains+Mono:wght@300;400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #0f0d0b;
+    --bg-raised: #17140f;
+    --ink: #ede6d8;
+    --ink-dim: #8a8173;
+    --ink-faint: #4a4338;
+    --rule: #2a241c;
+    --accent: #ff7a1a;
+    --accent-dim: #b85510;
+    --serif: 'Fraunces', Georgia, serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+    /* subtle film grain */
+    background-image:
+      radial-gradient(ellipse at top, rgba(255, 122, 26, 0.06), transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='2' seed='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.06 0 0 0 0.08 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ——— top bar ——— */
+  .topbar {
+    border-bottom: 1px solid var(--rule);
+    padding: 14px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    background: rgba(15, 13, 11, 0.8);
+    backdrop-filter: blur(8px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .topbar .left { display: flex; gap: 24px; }
+  .topbar .dot { color: var(--accent); }
+  .topbar a { color: var(--ink-dim); text-decoration: none; transition: color 0.2s; }
+  .topbar a:hover { color: var(--accent); }
+
+  /* ——— hero ——— */
+  .hero {
+    padding: 120px 32px 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 60px;
+    align-items: end;
+    border-bottom: 1px solid var(--rule);
+  }
+  .hero-label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+  .hero h1 {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: clamp(48px, 8vw, 112px);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 400;
+  }
+  .hero .meta {
+    font-size: 12px;
+    color: var(--ink-dim);
+    text-align: right;
+    line-height: 1.8;
+    min-width: 200px;
+  }
+  .hero .meta strong { color: var(--ink); font-weight: 500; }
+
+  /* ——— intro ——— */
+  .intro {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 32px;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 60px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .intro-label {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .intro-body {
+    max-width: 640px;
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+  .intro-body p + p { margin-top: 1em; }
+  .intro-body a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent-dim);
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .intro-body a:hover { color: var(--ink); border-color: var(--ink); }
+
+  /* ——— index ——— */
+  .index-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 32px 120px;
+  }
+
+  .section {
+    margin-bottom: 64px;
+  }
+  .section-header {
+    display: grid;
+    grid-template-columns: 200px 1fr auto;
+    gap: 60px;
+    align-items: baseline;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .section-num {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .section-title {
+    font-family: var(--serif);
+    font-weight: 300;
+    font-size: 32px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .section-title em { font-style: italic; color: var(--ink-dim); font-size: 0.7em; margin-left: 12px; }
+  .section-count {
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.1em;
+  }
+
+  .examples {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+
+  .example {
+    background: var(--bg);
+    padding: 24px;
+    text-decoration: none;
+    color: var(--ink);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: 12px;
+    position: relative;
+    transition: background 0.2s;
+    min-height: 180px;
+  }
+  .example:hover {
+    background: var(--bg-raised);
+  }
+  .example:hover .example-num { color: var(--accent); }
+  .example:hover .example-arrow { opacity: 1; transform: translateX(0); }
+
+  .example-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .example-num {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--ink-dim);
+    transition: color 0.2s;
+  }
+  .example-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .tag {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border: 1px solid var(--ink-faint);
+    color: var(--ink-dim);
+    border-radius: 2px;
+  }
+  .tag.accent { border-color: var(--accent-dim); color: var(--accent); }
+  .tag.filled { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+
+  .example-title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+  .example-desc {
+    font-size: 12px;
+    color: var(--ink-dim);
+    line-height: 1.5;
+  }
+  .example-arrow {
+    position: absolute;
+    bottom: 20px;
+    right: 24px;
+    color: var(--accent);
+    font-size: 14px;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  /* ——— footer ——— */
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 40px 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.05em;
+  }
+  footer a { color: var(--ink-dim); text-decoration: none; transition: color 0.2s; }
+  footer a:hover { color: var(--accent); }
+  footer .links { display: flex; gap: 24px; }
+
+  /* ——— responsive ——— */
+  @media (max-width: 720px) {
+    .hero { grid-template-columns: 1fr; padding: 80px 20px 60px; gap: 32px; }
+    .hero .meta { text-align: left; }
+    .intro { grid-template-columns: 1fr; gap: 16px; padding: 40px 20px; }
+    .section-header { grid-template-columns: 1fr; gap: 8px; }
+    .index-wrap { padding: 40px 20px 80px; }
+    .topbar { padding: 12px 20px; font-size: 10px; }
+    .topbar .left { gap: 12px; }
+    footer { grid-template-columns: 1fr; padding: 32px 20px; }
+  }
+
+  /* ——— staggered reveal on load ——— */
+  @keyframes riseIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .hero, .intro, .section { animation: riseIn 0.6s ease-out backwards; }
+  .intro { animation-delay: 0.1s; }
+  .section:nth-of-type(1) { animation-delay: 0.15s; }
+  .section:nth-of-type(2) { animation-delay: 0.2s; }
+  .section:nth-of-type(3) { animation-delay: 0.25s; }
+  .section:nth-of-type(4) { animation-delay: 0.3s; }
+  .section:nth-of-type(5) { animation-delay: 0.35s; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="left">
+    <span><span class="dot">●</span> cf-examples</span>
+    <span>v0.30</span>
+  </div>
+  <div class="right">
+    <a href="https://github.com/erincross/cf-examples">github ↗</a>
+  </div>
+</div>
+
+<header class="hero">
+  <div>
+    <div class="hero-label">Portfolio · Erin Cross · 2026</div>
+    <h1>Thirty examples<br>on the <em>edge</em>.</h1>
+  </div>
+  <div class="meta">
+    <div><strong>Stack</strong></div>
+    <div>Cloudflare Pages + Workers</div>
+    <div>KV · D1 · R2 · Durable Objects</div>
+    <div>Workers AI</div>
+    <div style="margin-top: 12px;"><strong>Source</strong></div>
+    <div>github.com/erincross</div>
+  </div>
+</header>
+
+<section class="intro">
+  <div class="intro-label">Preamble</div>
+  <div class="intro-body">
+    <p>A worked tour of the Cloudflare edge platform, from a single static HTML file to a Workers AI chat endpoint backed by D1. Each example is self-contained, readable in one sitting, and deployed live.</p>
+    <p>I run IT and managed services by day — Intune packaging, Proxmox homelabs, the occasional "why is Samba broken at 2am" — and consult on the side through <a href="https://xconsultingwork.com">xconsultingwork.com</a>. This repo is the public-facing version of how I think about building things: small, specific, and shippable.</p>
+    <p>Numbered, tagged, and grouped by what they demonstrate. Click any card to open the live example; each one links back to its source.</p>
+  </div>
+</section>
+
+<main class="index-wrap">
+
+  <!-- ——— Foundations ——— -->
+  <section class="section" id="foundations">
+    <div class="section-header">
+      <div class="section-num">§ 01 — 10</div>
+      <div class="section-title">Foundations <em>pure html + css</em></div>
+      <div class="section-count">10 examples</div>
+    </div>
+    <div class="examples">
+
+      <a class="example" href="/01-static-hello/">
+        <div class="example-top"><span class="example-num">01</span>
+          <div class="example-tags"><span class="tag">html</span></div></div>
+        <div>
+          <div class="example-title">static-hello</div>
+          <div class="example-desc">One HTML file, deployed to the edge. The baseline everything else builds on.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/02-css-grid-layout/">
+        <div class="example-top"><span class="example-num">02</span>
+          <div class="example-tags"><span class="tag">css</span><span class="tag">grid</span></div></div>
+        <div>
+          <div class="example-title">css-grid-layout</div>
+          <div class="example-desc">Responsive dashboard layout without a single media query. Grid plus auto-fit plus minmax.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/03-dark-mode-toggle/">
+        <div class="example-top"><span class="example-num">03</span>
+          <div class="example-tags"><span class="tag">css</span></div></div>
+        <div>
+          <div class="example-title">dark-mode-toggle</div>
+          <div class="example-desc">System-aware theming with CSS custom properties. Zero JavaScript.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/04-css-only-accordion/">
+        <div class="example-top"><span class="example-num">04</span>
+          <div class="example-tags"><span class="tag">html</span><span class="tag">css</span></div></div>
+        <div>
+          <div class="example-title">css-only-accordion</div>
+          <div class="example-desc">Disclosure patterns built on native &lt;details&gt; and :target. No JS reaches for it.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/05-responsive-gallery/">
+        <div class="example-top"><span class="example-num">05</span>
+          <div class="example-tags"><span class="tag">css</span><span class="tag">perf</span></div></div>
+        <div>
+          <div class="example-title">responsive-gallery</div>
+          <div class="example-desc">Intrinsic sizing, aspect-ratio, and lazy loading. Looks right on every viewport.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/06-css-art-rack/">
+        <div class="example-top"><span class="example-num">06</span>
+          <div class="example-tags"><span class="tag accent">homelab</span></div></div>
+        <div>
+          <div class="example-title">css-art-rack</div>
+          <div class="example-desc">An illustrated server rack in pure CSS. A nod to the Proxmox box in the other room.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/07-print-stylesheet/">
+        <div class="example-top"><span class="example-num">07</span>
+          <div class="example-tags"><span class="tag">css</span><span class="tag">print</span></div></div>
+        <div>
+          <div class="example-title">print-stylesheet</div>
+          <div class="example-desc">A résumé page that looks correct on screen and prints beautifully. Mine, specifically.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/08-scroll-driven-animation/">
+        <div class="example-top"><span class="example-num">08</span>
+          <div class="example-tags"><span class="tag">css</span><span class="tag">modern</span></div></div>
+        <div>
+          <div class="example-title">scroll-driven-animation</div>
+          <div class="example-desc">animation-timeline: scroll() where supported. Graceful fallback for everything else.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/09-container-queries/">
+        <div class="example-top"><span class="example-num">09</span>
+          <div class="example-tags"><span class="tag">css</span></div></div>
+        <div>
+          <div class="example-title">container-queries</div>
+          <div class="example-desc">A card component that reflows based on its container, not the viewport. The future of responsive.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/10-form-styling/">
+        <div class="example-top"><span class="example-num">10</span>
+          <div class="example-tags"><span class="tag">a11y</span></div></div>
+        <div>
+          <div class="example-title">form-styling</div>
+          <div class="example-desc">Accessible, styled form inputs without a framework. Proper focus states included.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ——— Interactive ——— -->
+  <section class="section" id="interactive">
+    <div class="section-header">
+      <div class="section-num">§ 11 — 15</div>
+      <div class="section-title">Interactive <em>+ vanilla js</em></div>
+      <div class="section-count">5 examples</div>
+    </div>
+    <div class="examples">
+
+      <a class="example" href="/11-todo-localstorage/">
+        <div class="example-top"><span class="example-num">11</span>
+          <div class="example-tags"><span class="tag">js</span></div></div>
+        <div>
+          <div class="example-title">todo-localstorage</div>
+          <div class="example-desc">The classic example, done cleanly. Keyboard-first, no dependencies.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/12-api-fetch-demo/">
+        <div class="example-top"><span class="example-num">12</span>
+          <div class="example-tags"><span class="tag">js</span><span class="tag">api</span></div></div>
+        <div>
+          <div class="example-title">api-fetch-demo</div>
+          <div class="example-desc">Public API call with loading, error, and empty states done right.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/13-clipboard-and-share/">
+        <div class="example-top"><span class="example-num">13</span>
+          <div class="example-tags"><span class="tag">js</span></div></div>
+        <div>
+          <div class="example-title">clipboard-and-share</div>
+          <div class="example-desc">Web Share API with a clipboard fallback. Progressive enhancement in practice.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/14-intersection-observer/">
+        <div class="example-top"><span class="example-num">14</span>
+          <div class="example-tags"><span class="tag">js</span></div></div>
+        <div>
+          <div class="example-title">intersection-observer</div>
+          <div class="example-desc">Lazy-reveal sections and animated counters, the efficient way.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/15-web-components/">
+        <div class="example-top"><span class="example-num">15</span>
+          <div class="example-tags"><span class="tag">js</span><span class="tag">platform</span></div></div>
+        <div>
+          <div class="example-title">web-components</div>
+          <div class="example-desc">A reusable &lt;status-badge&gt; element. Shadow DOM, no framework required.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ——— Functions ——— -->
+  <section class="section" id="functions">
+    <div class="section-header">
+      <div class="section-num">§ 16 — 20</div>
+      <div class="section-title">Pages Functions <em>the edge, finally</em></div>
+      <div class="section-count">5 examples</div>
+    </div>
+    <div class="examples">
+
+      <a class="example" href="/16-contact-form/">
+        <div class="example-top"><span class="example-num">16</span>
+          <div class="example-tags"><span class="tag accent">fn</span></div></div>
+        <div>
+          <div class="example-title">contact-form</div>
+          <div class="example-desc">POST handler with Turnstile CAPTCHA, sent via MailChannels. No third-party form service.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/17-geo-greeting/">
+        <div class="example-top"><span class="example-num">17</span>
+          <div class="example-tags"><span class="tag accent">fn</span></div></div>
+        <div>
+          <div class="example-title">geo-greeting</div>
+          <div class="example-desc">Personalized content from request.cf — country, colo, timezone. Edge location awareness.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/18-api-proxy/">
+        <div class="example-top"><span class="example-num">18</span>
+          <div class="example-tags"><span class="tag accent">fn</span><span class="tag">kv</span></div></div>
+        <div>
+          <div class="example-title">api-proxy</div>
+          <div class="example-desc">Rate-limited proxy to a third-party API, hiding the key server-side. KV for the rate limiter.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/19-auth-gate/">
+        <div class="example-top"><span class="example-num">19</span>
+          <div class="example-tags"><span class="tag accent">fn</span><span class="tag">auth</span></div></div>
+        <div>
+          <div class="example-title">auth-gate</div>
+          <div class="example-desc">Cookie-based auth with signed tokens. Hono middleware pattern, no session store needed.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/20-headers-and-redirects/">
+        <div class="example-top"><span class="example-num">20</span>
+          <div class="example-tags"><span class="tag">config</span></div></div>
+        <div>
+          <div class="example-title">headers-and-redirects</div>
+          <div class="example-desc">_headers and _redirects done right. CSP, HSTS, SPA fallback, the works.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ——— Stateful ——— -->
+  <section class="section" id="stateful">
+    <div class="section-header">
+      <div class="section-num">§ 21 — 25</div>
+      <div class="section-title">Stateful Edge <em>kv · d1 · r2 · durable objects</em></div>
+      <div class="section-count">5 examples</div>
+    </div>
+    <div class="examples">
+
+      <a class="example" href="/21-kv-visit-counter/">
+        <div class="example-top"><span class="example-num">21</span>
+          <div class="example-tags"><span class="tag filled">kv</span></div></div>
+        <div>
+          <div class="example-title">kv-visit-counter</div>
+          <div class="example-desc">Per-page view counter in Workers KV. Eventually consistent, edge-fast.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/22-d1-guestbook/">
+        <div class="example-top"><span class="example-num">22</span>
+          <div class="example-tags"><span class="tag filled">d1</span></div></div>
+        <div>
+          <div class="example-title">d1-guestbook</div>
+          <div class="example-desc">SQLite at the edge. Paginated, sanitized, migrations included.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/23-r2-image-upload/">
+        <div class="example-top"><span class="example-num">23</span>
+          <div class="example-tags"><span class="tag filled">r2</span></div></div>
+        <div>
+          <div class="example-title">r2-image-upload</div>
+          <div class="example-desc">Presigned uploads, R2-backed gallery, image transforms via Cloudflare Images.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/24-durable-object-chat/">
+        <div class="example-top"><span class="example-num">24</span>
+          <div class="example-tags"><span class="tag filled">do</span><span class="tag">ws</span></div></div>
+        <div>
+          <div class="example-title">durable-object-chat</div>
+          <div class="example-desc">Real-time chat rooms over WebSockets. One Durable Object per room, coordinated at the edge.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/25-queue-job-processor/">
+        <div class="example-top"><span class="example-num">25</span>
+          <div class="example-tags"><span class="tag filled">queue</span></div></div>
+        <div>
+          <div class="example-title">queue-job-processor</div>
+          <div class="example-desc">Enqueue from a form, process in the background. Retries and dead-letter handling.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ——— Advanced ——— -->
+  <section class="section" id="advanced">
+    <div class="section-header">
+      <div class="section-num">§ 26 — 30</div>
+      <div class="section-title">Advanced <em>applied, real-world</em></div>
+      <div class="section-count">5 examples</div>
+    </div>
+    <div class="examples">
+
+      <a class="example" href="/26-workers-ai-chat/">
+        <div class="example-top"><span class="example-num">26</span>
+          <div class="example-tags"><span class="tag filled">ai</span></div></div>
+        <div>
+          <div class="example-title">workers-ai-chat</div>
+          <div class="example-desc">Streaming chat UI backed by Llama 3.1 running on Cloudflare GPUs.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/27-workers-ai-image-tag/">
+        <div class="example-top"><span class="example-num">27</span>
+          <div class="example-tags"><span class="tag filled">ai</span><span class="tag">r2</span></div></div>
+        <div>
+          <div class="example-title">workers-ai-image-tag</div>
+          <div class="example-desc">Upload an image, get classification tags back. ResNet on the edge.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/28-cron-status-page/">
+        <div class="example-top"><span class="example-num">28</span>
+          <div class="example-tags"><span class="tag">cron</span><span class="tag filled">d1</span></div></div>
+        <div>
+          <div class="example-title">cron-status-page</div>
+          <div class="example-desc">Scheduled Worker pings endpoints, writes uptime to D1, renders a public status page.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/29-homelab-dashboard/">
+        <div class="example-top"><span class="example-num">29</span>
+          <div class="example-tags"><span class="tag accent">homelab</span></div></div>
+        <div>
+          <div class="example-title">homelab-dashboard</div>
+          <div class="example-desc">My actual homelab status board. Public read-only mirror of Proxmox, Synology, services.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+      <a class="example" href="/30-solar-design-helper/">
+        <div class="example-top"><span class="example-num">30</span>
+          <div class="example-tags"><span class="tag accent">applied</span></div></div>
+        <div>
+          <div class="example-title">solar-design-helper</div>
+          <div class="example-desc">CSV in, NEC-compliant string sizing suggestions out. From actual consulting work.</div>
+        </div>
+        <span class="example-arrow">→</span>
+      </a>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div>
+    © 2026 Erin Cross · Portland, Oregon · Built on Cloudflare Pages
+  </div>
+  <div class="links">
+    <a href="https://github.com/erincross/cf-examples">github</a>
+    <a href="https://xconsultingwork.com">consulting</a>
+    <a href="mailto:hello@xconsultingwork.com">email</a>
+  </div>
+</footer>
+
+</body>
+</html>

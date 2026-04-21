@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>26 · workers-ai-chat</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #0f0d0b; --bg-raised: #17140f; --ink: #ede6d8; --ink-dim: #8a8173;
+    --ink-faint: #4a4338; --rule: #2a241c; --accent: #ff7a1a;
+    --bubble-user: #1d1812; --bubble-ai: #17140f;
+    --serif: 'Fraunces', serif; --mono: 'JetBrains Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--mono);
+    display: flex; flex-direction: column;
+  }
+
+  header {
+    padding: 24px 32px; border-bottom: 1px solid var(--rule);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0;
+  }
+  .title-block .num { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); }
+  .title-block h1 {
+    font-family: var(--serif); font-weight: 300; font-size: 28px;
+    letter-spacing: -0.01em; margin-top: 4px;
+  }
+  .title-block h1 em { font-style: italic; color: var(--accent); }
+
+  .status {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #4ade80; box-shadow: 0 0 6px #4ade80;
+  }
+
+  .back-link { font-size: 11px; color: var(--ink-dim); text-decoration: none; letter-spacing: 0.1em; text-transform: uppercase; }
+  .back-link:hover { color: var(--accent); }
+
+  /* ——— chat ——— */
+  main {
+    flex: 1; overflow-y: auto; padding: 32px 20px;
+    display: flex; justify-content: center;
+  }
+  .chat {
+    width: 100%; max-width: 720px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+
+  .msg {
+    display: flex; flex-direction: column; gap: 4px;
+    max-width: 85%;
+    animation: slideIn 0.25s ease-out;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.assistant { align-self: flex-start; align-items: flex-start; }
+
+  .msg-label {
+    font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .msg.user .msg-label { color: var(--accent); }
+
+  .bubble {
+    padding: 14px 18px; border-radius: 4px;
+    border: 1px solid var(--rule);
+    font-size: 14px; line-height: 1.65;
+    white-space: pre-wrap; word-wrap: break-word;
+  }
+  .msg.user .bubble { background: var(--bubble-user); }
+  .msg.assistant .bubble { background: var(--bubble-ai); }
+
+  .bubble .cursor::after {
+    content: '▋'; color: var(--accent);
+    animation: blink 0.9s infinite;
+    margin-left: 2px;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .intro-note {
+    text-align: center; color: var(--ink-dim); font-size: 13px;
+    padding: 40px 20px; max-width: 520px; margin: 0 auto;
+    line-height: 1.7;
+  }
+  .intro-note code { color: var(--ink); background: var(--bg-raised); padding: 1px 6px; border-radius: 2px; font-size: 12px; }
+
+  /* ——— input ——— */
+  .composer-wrap {
+    border-top: 1px solid var(--rule); padding: 20px;
+    display: flex; justify-content: center;
+    flex-shrink: 0;
+  }
+  .composer {
+    width: 100%; max-width: 720px;
+    display: flex; gap: 10px;
+    background: var(--bg-raised); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 4px;
+    transition: border-color 0.15s;
+  }
+  .composer:focus-within { border-color: var(--accent); }
+  .composer textarea {
+    flex: 1; background: transparent; border: none; color: var(--ink);
+    font-family: var(--mono); font-size: 14px; padding: 10px 12px;
+    resize: none; max-height: 140px; outline: none;
+  }
+  .composer button {
+    background: var(--accent); color: var(--bg); border: none;
+    padding: 0 18px; font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500;
+    border-radius: 3px; cursor: pointer; align-self: stretch;
+    transition: opacity 0.15s;
+  }
+  .composer button:hover { opacity: 0.85; }
+  .composer button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .footer-note {
+    text-align: center; font-size: 10px; color: var(--ink-faint);
+    letter-spacing: 0.1em; margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <div class="num">§ 26 — advanced</div>
+    <h1>workers-ai-<em>chat</em></h1>
+  </div>
+  <div class="status">
+    <span class="status-dot"></span>
+    <span>llama 3.1 · streaming</span>
+  </div>
+  <a href="/" class="back-link">← index</a>
+</header>
+
+<main>
+  <div class="chat" id="chat">
+    <div class="intro-note">
+      Start a conversation. This UI streams tokens from <code>@cf/meta/llama-3.1-8b-instruct</code>
+      running on Cloudflare's GPU network. Every response is generated at the edge — no OpenAI,
+      no external API key.
+      <br><br>
+      Try: <em>"Explain Cloudflare Workers in one paragraph"</em>
+    </div>
+  </div>
+</main>
+
+<div class="composer-wrap">
+  <form class="composer" id="form">
+    <textarea id="input" placeholder="Ask anything…" rows="1" autocomplete="off"></textarea>
+    <button type="submit" id="submit">Send →</button>
+  </form>
+</div>
+
+<script>
+  const chat = document.getElementById('chat');
+  const form = document.getElementById('form');
+  const input = document.getElementById('input');
+  const submit = document.getElementById('submit');
+  const intro = chat.querySelector('.intro-note');
+
+  const history = [];
+
+  // auto-resize textarea
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 140) + 'px';
+  });
+
+  // submit on enter, newline on shift+enter
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  function appendMessage(role, content = '') {
+    const msg = document.createElement('div');
+    msg.className = `msg ${role}`;
+    msg.innerHTML = `
+      <div class="msg-label">${role === 'user' ? 'you' : 'assistant'}</div>
+      <div class="bubble"></div>
+    `;
+    msg.querySelector('.bubble').textContent = content;
+    chat.appendChild(msg);
+    chat.parentElement.scrollTop = chat.parentElement.scrollHeight;
+    return msg.querySelector('.bubble');
+  }
+
+  async function send(userText) {
+    if (intro) intro.remove();
+
+    history.push({ role: 'user', content: userText });
+    appendMessage('user', userText);
+
+    const assistantBubble = appendMessage('assistant', '');
+    assistantBubble.classList.add('cursor');
+
+    submit.disabled = true;
+    input.disabled = true;
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ messages: history }),
+      });
+
+      if (!res.ok || !res.body) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+
+      // parse SSE stream
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let fullText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') continue;
+
+          try {
+            const chunk = JSON.parse(data);
+            if (chunk.response) {
+              fullText += chunk.response;
+              assistantBubble.textContent = fullText;
+              chat.parentElement.scrollTop = chat.parentElement.scrollHeight;
+            }
+          } catch { /* incomplete json — skip */ }
+        }
+      }
+
+      assistantBubble.classList.remove('cursor');
+      history.push({ role: 'assistant', content: fullText });
+    } catch (err) {
+      assistantBubble.classList.remove('cursor');
+      assistantBubble.textContent = `Error: ${err.message}`;
+      assistantBubble.style.color = '#f87171';
+    } finally {
+      submit.disabled = false;
+      input.disabled = false;
+      input.focus();
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    input.style.height = 'auto';
+    send(text);
+  });
+
+  input.focus();
+</script>
+</body>
+</html>

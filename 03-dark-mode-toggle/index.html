@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>03 · dark-mode-toggle</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  /* ——— defaults: system preference ——— */
+  :root {
+    --bg: #fdfcf8;
+    --bg-raised: #f4f1e8;
+    --ink: #1a1714;
+    --ink-dim: #6b6359;
+    --rule: #d4cdbb;
+    --accent: #c2410c;
+    --serif: 'Fraunces', serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f0d0b;
+      --bg-raised: #17140f;
+      --ink: #ede6d8;
+      --ink-dim: #8a8173;
+      --rule: #2a241c;
+      --accent: #ff7a1a;
+    }
+  }
+
+  /* ——— user-toggled overrides via :has() ——— */
+  html:has(#theme-light:checked) {
+    --bg: #fdfcf8; --bg-raised: #f4f1e8; --ink: #1a1714;
+    --ink-dim: #6b6359; --rule: #d4cdbb; --accent: #c2410c;
+  }
+  html:has(#theme-dark:checked) {
+    --bg: #0f0d0b; --bg-raised: #17140f; --ink: #ede6d8;
+    --ink-dim: #8a8173; --rule: #2a241c; --accent: #ff7a1a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--mono);
+    min-height: 100vh; padding: 40px 20px;
+    transition: background 0.3s, color 0.3s;
+  }
+  .container { max-width: 640px; margin: 0 auto; }
+  .num { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+  h1 { font-family: var(--serif); font-weight: 300; font-size: 56px; line-height: 1; letter-spacing: -0.02em; margin-bottom: 24px; }
+  h1 em { font-style: italic; color: var(--accent); }
+  p { font-size: 14px; color: var(--ink-dim); line-height: 1.7; margin-bottom: 16px; }
+  code { font-family: var(--mono); background: var(--bg-raised); color: var(--ink); padding: 2px 6px; border-radius: 2px; font-size: 12px; }
+
+  /* ——— the toggle ——— */
+  .theme-toggle {
+    display: inline-flex; margin: 24px 0; background: var(--bg-raised);
+    border: 1px solid var(--rule); border-radius: 999px; padding: 3px;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .theme-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+  .theme-toggle label {
+    padding: 8px 18px; font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-dim); cursor: pointer;
+    border-radius: 999px; transition: background 0.2s, color 0.2s;
+  }
+  .theme-toggle input:checked + label {
+    background: var(--accent); color: var(--bg);
+  }
+
+  .sample {
+    background: var(--bg-raised); border: 1px solid var(--rule);
+    padding: 20px; border-radius: 4px; margin-top: 24px;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .sample h3 { font-family: var(--serif); font-weight: 400; font-size: 20px; margin-bottom: 8px; }
+
+  .back { margin-top: 40px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .back a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="num">§ 03 — foundations</div>
+  <h1>dark-mode-<em>toggle</em></h1>
+
+  <p>This page defaults to your system theme via <code>prefers-color-scheme</code>. Use the toggle to override. Zero JavaScript — the override works through <code>:has()</code> and radio inputs.</p>
+
+  <div class="theme-toggle">
+    <input type="radio" name="theme" id="theme-auto" checked>
+    <label for="theme-auto">auto</label>
+    <input type="radio" name="theme" id="theme-light">
+    <label for="theme-light">light</label>
+    <input type="radio" name="theme" id="theme-dark">
+    <label for="theme-dark">dark</label>
+  </div>
+
+  <div class="sample">
+    <h3>Preview content</h3>
+    <p>This card uses the same CSS variables as the rest of the page. Toggle above and watch every color update in one frame — that's the point of driving everything through custom properties.</p>
+  </div>
+
+  <p style="margin-top: 32px;">The whole theme is three CSS custom properties on <code>:root</code>. Media queries set the defaults; <code>html:has(#theme-light:checked)</code> and <code>html:has(#theme-dark:checked)</code> override them when the user picks a mode. The radio input for "auto" is just the absence of the other two.</p>
+
+  <div class="back"><a href="/">← back to index</a></div>
+</div>
+</body>
+</html>

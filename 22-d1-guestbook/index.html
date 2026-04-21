@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>22 · d1-guestbook</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #0f0d0b; --bg-raised: #17140f; --ink: #ede6d8; --ink-dim: #8a8173;
+    --ink-faint: #4a4338; --rule: #2a241c; --accent: #ff7a1a;
+    --serif: 'Fraunces', serif; --mono: 'JetBrains Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--mono);
+    min-height: 100vh; padding: 40px 20px;
+  }
+  .container { max-width: 640px; margin: 0 auto; }
+  .num { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+  h1 { font-family: var(--serif); font-weight: 300; font-size: 56px; line-height: 1; letter-spacing: -0.02em; margin-bottom: 24px; }
+  h1 em { font-style: italic; color: var(--accent); }
+  .intro { font-size: 14px; color: var(--ink-dim); line-height: 1.7; margin-bottom: 40px; }
+
+  /* ——— form ——— */
+  form {
+    background: var(--bg-raised); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 24px; margin-bottom: 40px;
+  }
+  .field { margin-bottom: 16px; }
+  .field:last-of-type { margin-bottom: 20px; }
+  label {
+    display: block; font-size: 10px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--ink-dim); margin-bottom: 6px;
+  }
+  input, textarea {
+    width: 100%; background: var(--bg); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 3px;
+    padding: 10px 12px; font-family: var(--mono); font-size: 13px;
+    transition: border-color 0.15s;
+  }
+  input:focus, textarea:focus {
+    outline: none; border-color: var(--accent);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  .counter { font-size: 10px; color: var(--ink-faint); text-align: right; margin-top: 4px; }
+  .counter.over { color: var(--accent); }
+
+  button {
+    background: var(--accent); color: var(--bg);
+    border: none; padding: 12px 20px; font-family: var(--mono);
+    font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+    font-weight: 500; border-radius: 3px; cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  button:hover { opacity: 0.85; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .error { color: #f87171; font-size: 12px; margin-top: 8px; min-height: 1em; }
+  .success { color: #4ade80; font-size: 12px; margin-top: 8px; min-height: 1em; }
+
+  /* ——— entries ——— */
+  .entries { display: flex; flex-direction: column; gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+  .entry { background: var(--bg); padding: 20px; }
+  .entry-header {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 8px; font-size: 11px;
+  }
+  .entry-name { color: var(--accent); font-weight: 500; letter-spacing: 0.02em; }
+  .entry-meta { color: var(--ink-faint); font-size: 10px; letter-spacing: 0.05em; }
+  .entry-message { font-size: 14px; line-height: 1.6; color: var(--ink); white-space: pre-wrap; word-wrap: break-word; }
+
+  .empty, .loading {
+    padding: 40px; text-align: center; color: var(--ink-dim);
+    font-style: italic; font-size: 13px;
+  }
+
+  .load-more {
+    background: transparent; color: var(--accent); border: 1px solid var(--rule);
+    margin: 20px auto 0; display: block;
+  }
+  .load-more:hover { border-color: var(--accent); }
+
+  .back { margin-top: 40px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; text-align: center; }
+  .back a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="num">§ 22 — stateful edge</div>
+  <h1>d1-<em>guestbook</em></h1>
+  <p class="intro">
+    SQLite running at the edge. Leave a message; it's written to a D1 database,
+    replicated globally, and served back through a Pages Function.
+    Entries are paginated by cursor, sanitized on write, and tagged with the
+    country the request came from (via <code>request.cf.country</code>).
+  </p>
+
+  <form id="form">
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" type="text" maxlength="50" required>
+      <div class="counter" id="nameCounter">0 / 50</div>
+    </div>
+    <div class="field">
+      <label for="message">Message</label>
+      <textarea id="message" maxlength="500" required></textarea>
+      <div class="counter" id="msgCounter">0 / 500</div>
+    </div>
+    <button type="submit" id="submit">Sign guestbook →</button>
+    <div class="error" id="error"></div>
+  </form>
+
+  <div class="entries" id="entries">
+    <div class="loading">loading entries…</div>
+  </div>
+
+  <button class="load-more" id="loadMore" style="display:none;">Load more ↓</button>
+
+  <div class="back"><a href="/">← back to index</a></div>
+</div>
+
+<script>
+  const form = document.getElementById('form');
+  const nameInput = document.getElementById('name');
+  const msgInput = document.getElementById('message');
+  const nameCounter = document.getElementById('nameCounter');
+  const msgCounter = document.getElementById('msgCounter');
+  const submitBtn = document.getElementById('submit');
+  const errorEl = document.getElementById('error');
+  const entriesEl = document.getElementById('entries');
+  const loadMoreBtn = document.getElementById('loadMore');
+
+  let cursor = null;
+
+  nameInput.addEventListener('input', () => {
+    nameCounter.textContent = `${nameInput.value.length} / 50`;
+  });
+  msgInput.addEventListener('input', () => {
+    msgCounter.textContent = `${msgInput.value.length} / 500`;
+  });
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function timeAgo(unix) {
+    const diff = Math.floor(Date.now() / 1000) - unix;
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
+    return new Date(unix * 1000).toLocaleDateString();
+  }
+
+  function countryFlag(country) {
+    if (!country || country.length !== 2) return '';
+    return String.fromCodePoint(...[...country.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+  }
+
+  function renderEntry(e) {
+    const flag = countryFlag(e.country);
+    return `
+      <article class="entry">
+        <div class="entry-header">
+          <span class="entry-name">${escapeHtml(e.name)}</span>
+          <span class="entry-meta">${flag ? flag + ' ' : ''}${timeAgo(e.created_at)}</span>
+        </div>
+        <div class="entry-message">${escapeHtml(e.message)}</div>
+      </article>
+    `;
+  }
+
+  async function loadEntries(reset = false) {
+    try {
+      const url = cursor ? `/api/entries?cursor=${cursor}` : '/api/entries';
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      if (reset) entriesEl.innerHTML = '';
+      if (entriesEl.querySelector('.loading')) entriesEl.innerHTML = '';
+
+      if (data.entries.length === 0 && !cursor) {
+        entriesEl.innerHTML = '<div class="empty">no entries yet — be the first</div>';
+      } else {
+        entriesEl.insertAdjacentHTML('beforeend', data.entries.map(renderEntry).join(''));
+      }
+
+      cursor = data.nextCursor;
+      loadMoreBtn.style.display = cursor ? 'block' : 'none';
+    } catch (err) {
+      entriesEl.innerHTML = `<div class="empty">error loading: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorEl.textContent = '';
+    submitBtn.disabled = true;
+
+    try {
+      const res = await fetch('/api/entries', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: nameInput.value.trim(),
+          message: msgInput.value.trim(),
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+      // prepend the new entry
+      const empty = entriesEl.querySelector('.empty');
+      if (empty) entriesEl.innerHTML = '';
+      entriesEl.insertAdjacentHTML('afterbegin', renderEntry(data.entry));
+
+      form.reset();
+      nameCounter.textContent = '0 / 50';
+      msgCounter.textContent = '0 / 500';
+    } catch (err) {
+      errorEl.textContent = err.message;
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  loadMoreBtn.addEventListener('click', () => loadEntries(false));
+
+  loadEntries(true);
+</script>
+</body>
+</html>

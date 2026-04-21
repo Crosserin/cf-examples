@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>21 · kv-visit-counter</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #0f0d0b; --bg-raised: #17140f; --ink: #ede6d8; --ink-dim: #8a8173;
+    --rule: #2a241c; --accent: #ff7a1a;
+    --serif: 'Fraunces', serif; --mono: 'JetBrains Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--mono);
+    min-height: 100vh; display: grid; place-items: center; padding: 40px;
+  }
+  .card { max-width: 560px; text-align: left; }
+  .num { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+  h1 { font-family: var(--serif); font-weight: 300; font-size: 56px; line-height: 1; letter-spacing: -0.02em; margin-bottom: 24px; }
+  h1 em { font-style: italic; color: var(--accent); }
+  p { font-size: 14px; color: var(--ink-dim); line-height: 1.7; margin-bottom: 16px; }
+
+  .counter {
+    background: var(--bg-raised); border: 1px solid var(--rule);
+    border-radius: 4px; padding: 40px; text-align: center;
+    margin: 32px 0;
+  }
+  .counter-label {
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--ink-dim); margin-bottom: 12px;
+  }
+  .counter-value {
+    font-family: var(--serif); font-weight: 300;
+    font-size: 96px; line-height: 1; color: var(--accent);
+    letter-spacing: -0.04em; font-variant-numeric: tabular-nums;
+    transition: transform 0.2s;
+  }
+  .counter-value.bump { transform: scale(1.05); }
+
+  code { background: var(--bg-raised); padding: 2px 6px; border-radius: 2px; color: var(--ink); font-size: 12px; }
+
+  .back { margin-top: 40px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+  .back a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="num">§ 21 — stateful edge</div>
+  <h1>kv-visit-<em>counter</em></h1>
+
+  <p>Every load of this page hits <code>/api/count</code>, which reads the current value from Workers KV, increments it, writes it back, and returns the new total.</p>
+
+  <div class="counter">
+    <div class="counter-label">Total visits</div>
+    <div class="counter-value" id="count">—</div>
+  </div>
+
+  <p>KV is eventually consistent across regions — if you refresh quickly from different continents, you might briefly see the old value. For a visit counter, that's fine.</p>
+
+  <p>The real gotcha with this pattern: <strong>writing to KV on every request doesn't scale</strong>. KV is optimized for hot reads, not hot writes. See the README for how to do it right at traffic.</p>
+
+  <div class="back"><a href="/">← back to index</a></div>
+</div>
+
+<script>
+  fetch('/api/count')
+    .then(r => r.json())
+    .then(({ count }) => {
+      const el = document.getElementById('count');
+      el.textContent = count.toLocaleString();
+      el.classList.add('bump');
+      setTimeout(() => el.classList.remove('bump'), 300);
+    })
+    .catch(() => {
+      document.getElementById('count').textContent = '?';
+    });
+</script>
+</body>
+</html>
