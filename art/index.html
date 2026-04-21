@@ -85,9 +85,14 @@
   .w-cityscape::after {
     content: '✦'; position: absolute; top: 18%; right: 22%; color: #fafafa; opacity: 0.4; font-size: 10px;
   }
-  .w-glyphs {
-    background: #0a0a0a; display: grid; place-items: center;
+  .w-trace {
+    background: #0a0a0a; display: grid; place-items: center; overflow: hidden;
+    background-image:
+      linear-gradient(rgba(251,44,54,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(251,44,54,0.08) 1px, transparent 1px);
+    background-size: 14px 14px;
   }
+  .trace-svg { width: 110px; height: 110px; filter: drop-shadow(0 0 6px rgba(251,44,54,0.35)); }
   .w-glyphs::before {
     content: 'typography'; font-family: var(--serif); font-style: italic; font-size: 38px;
     background: linear-gradient(180deg, #fafafa, #555);
@@ -159,13 +164,24 @@
     </div>
   </a>
 
-  <a class="work" href="/art/glyphs/">
-    <div class="work-thumb w-glyphs"></div>
+  <a class="work" href="/art/trace/">
+    <div class="work-thumb w-trace">
+      <svg viewBox="0 0 140 140" class="trace-svg" aria-hidden="true">
+        <g stroke="#fb2c36" stroke-width="0.55" fill="none" opacity="0.75" transform="translate(70 70)">
+          <ellipse rx="48" ry="20"/>
+          <ellipse rx="48" ry="20" transform="rotate(30)"/>
+          <ellipse rx="48" ry="20" transform="rotate(60)"/>
+          <ellipse rx="48" ry="20" transform="rotate(90)"/>
+          <ellipse rx="48" ry="20" transform="rotate(120)"/>
+          <ellipse rx="48" ry="20" transform="rotate(150)"/>
+        </g>
+      </svg>
+    </div>
     <div class="work-body">
       <div class="work-num">work ii · 002</div>
-      <div class="work-title">Kinetic glyphs</div>
-      <div class="work-desc">A typographic specimen that responds to your scroll position. Letters breathe, stretch, collapse.</div>
-      <div class="work-meta"><span>typography</span><span>live</span></div>
+      <div class="work-title">Trace</div>
+      <div class="work-desc">A digital harmonograph. Four coupled oscillators drawing their own conversation, live on canvas. Six presets, seven dials, infinite curves.</div>
+      <div class="work-meta"><span>canvas</span><span>live</span></div>
     </div>
   </a>
 

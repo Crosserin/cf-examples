@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trace · X = Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,wght@1,300&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <span class="brand">X <em>=</em> Consulting</span>
+  <span class="breadcrumb"><a href="/red/">paths</a><span>&rsaquo;</span><a href="/art/">art</a><span>&rsaquo;</span>trace</span>
+</nav>
+
+<section class="opening">
+  <div class="chapter">[ &sect;005.ii &mdash; work ii &middot; trace ]</div>
+  <h1>Four oscillators, <em>one</em> conversation.</h1>
+  <p>A digital harmonograph. Two pendulums drive X; two drive Y. Each is damped, each has its own frequency and phase, and the pen at their intersection draws whatever comes out. Victorian-era mathematical art, reimplemented in fifty lines of canvas.</p>
+</section>
+
+<section class="instrument">
+  <canvas id="scope"></canvas>
+  <div class="pen-overlay" id="penOverlay"></div>
+</section>
+
+<section class="controls">
+  <div class="presets">
+    <span class="ctrl-label">preset</span>
+    <button class="preset-btn" data-preset="flower">flower</button>
+    <button class="preset-btn" data-preset="spiral">spiral</button>
+    <button class="preset-btn" data-preset="lissajous">lissajous</button>
+    <button class="preset-btn" data-preset="infinity">infinity</button>
+    <button class="preset-btn" data-preset="starburst">starburst</button>
+    <button class="preset-btn" data-preset="chaos">chaos</button>
+  </div>
+  <div class="sliders">
+    <label>f<sub>1</sub><input type="range" id="f1" min="1" max="8" step="0.01" value="3"><span class="v" id="f1v"></span></label>
+    <label>f<sub>2</sub><input type="range" id="f2" min="1" max="8" step="0.01" value="2"><span class="v" id="f2v"></span></label>
+    <label>f<sub>3</sub><input type="range" id="f3" min="1" max="8" step="0.01" value="2"><span class="v" id="f3v"></span></label>
+    <label>f<sub>4</sub><input type="range" id="f4" min="1" max="8" step="0.01" value="3"><span class="v" id="f4v"></span></label>
+    <label>&phi;<sub>1</sub><input type="range" id="p1" min="0" max="6.2831" step="0.01" value="0"><span class="v" id="p1v"></span></label>
+    <label>&phi;<sub>2</sub><input type="range" id="p2" min="0" max="6.2831" step="0.01" value="1.5708"><span class="v" id="p2v"></span></label>
+    <label>damping<input type="range" id="d" min="0" max="0.02" step="0.0002" value="0.004"><span class="v" id="dv"></span></label>
+    <button id="redraw">&#8634; redraw</button>
+  </div>
+</section>
+
+<footer>
+  <span>work ii &middot; art</span>
+  <a href="/art/">&larr; back to art</a>
+</footer>
+
+<script>
+  const canvas = document.getElementById('scope');
+  const ctx = canvas.getContext('2d');
+  const penEl = document.getElementById('penOverlay');
+  let W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  const params = { f1: 3, f2: 2, f3: 2, f4: 3, p1: 0, p2: Math.PI/2, d: 0.004 };
+
+  const PRESETS = {
+    flower:    { f1: 3,    f2: 2,    f3: 2,    f4: 3,    p1: 0,       p2: Math.PI/2, d: 0.004 },
+    spiral:    { f1: 2.01, f2: 3,    f3: 3,    f4: 2,    p1: 0,       p2: 0.5,       d: 0.0065 },
+    lissajous: { f1: 5,    f2: 0,    f3: 4,    f4: 0,    p1: 0,       p2: Math.PI/3, d: 0 },
+    infinity:  { f1: 2,    f2: 2,    f3: 1,    f4: 1,    p1: Math.PI/4, p2: 0,       d: 0.0025 },
+    starburst: { f1: 5.98, f2: 3.01, f3: 2.99, f4: 4.97, p1: 0,       p2: Math.PI/2, d: 0.0055 },
+    chaos:     { f1: 4.13, f2: 2.71, f3: 3.14, f4: 5.77, p1: 1.1,     p2: 2.3,       d: 0.003 },
+  };
+
+  let animId = null;
+  let t = 0, tMax = 1400;
+  let lastX = null, lastY = null;
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    W = rect.width; H = rect.height;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawBackground();
+  }
+
+  function drawBackground() {
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, W, H);
+    // graticule
+    ctx.strokeStyle = 'rgba(251,44,54,0.08)';
+    ctx.lineWidth = 1;
+    const step = Math.min(W, H) / 20;
+    for (let x = step; x < W; x += step) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let y = step; y < H; y += step) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+    // center crosshair
+    ctx.strokeStyle = 'rgba(251,44,54,0.2)';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(W/2, 0); ctx.lineTo(W/2, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
+  }
+
+  function point(time) {
+    const dt = time * 0.02;
+    const damp = Math.exp(-params.d * time);
+    const x = (Math.sin(params.f1 * dt + params.p1) + Math.sin(params.f2 * dt + params.p2)) * 0.5 * damp;
+    const y = (Math.sin(params.f3 * dt + params.p1 * 0.5) + Math.sin(params.f4 * dt + params.p2 * 0.5)) * 0.5 * damp;
+    return [x, y];
+  }
+
+  function startTrace() {
+    cancelAnimationFrame(animId);
+    t = 0; lastX = null; lastY = null;
+    drawBackground();
+    const radius = Math.min(W, H) * 0.42;
+    const cx = W / 2, cy = H / 2;
+
+    function frame() {
+      const perFrame = 6;
+      for (let i = 0; i < perFrame; i++) {
+        if (t > tMax) {
+          penEl.style.opacity = '0';
+          return;
+        }
+        const [nx, ny] = point(t);
+        const px = cx + nx * radius;
+        const py = cy + ny * radius;
+        if (lastX !== null) {
+          // Fade earlier strokes by overlaying a very faint black — gives gentle persistence
+          const fade = 0.994;
+          const alpha = 0.85 * (1 - t / tMax) + 0.25;
+          ctx.strokeStyle = `rgba(251,44,54,${alpha.toFixed(3)})`;
+          ctx.lineWidth = 1.3;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(lastX, lastY);
+          ctx.lineTo(px, py);
+          ctx.stroke();
+        }
+        lastX = px; lastY = py;
+
+        // pen indicator at leading edge
+        if (i === perFrame - 1) {
+          const rect = canvas.getBoundingClientRect();
+          penEl.style.opacity = '1';
+          penEl.style.left = (rect.left + px) + 'px';
+          penEl.style.top  = (rect.top  + py) + 'px';
+        }
+        t += 1;
+      }
+      animId = requestAnimationFrame(frame);
+    }
+    frame();
+  }
+
+  function applyPreset(name) {
+    Object.assign(params, PRESETS[name]);
+    ['f1','f2','f3','f4','p1','p2','d'].forEach(k => {
+      document.getElementById(k).value = params[k];
+      document.getElementById(k + 'v').textContent = fmt(k, params[k]);
+    });
+    startTrace();
+  }
+
+  function fmt(k, v) {
+    if (k === 'd') return (+v).toFixed(4);
+    if (k.startsWith('p')) return (+v).toFixed(2);
+    return (+v).toFixed(2);
+  }
+
+  ['f1','f2','f3','f4','p1','p2','d'].forEach(k => {
+    const el = document.getElementById(k);
+    const label = document.getElementById(k + 'v');
+    label.textContent = fmt(k, params[k]);
+    el.addEventListener('input', () => {
+      params[k] = parseFloat(el.value);
+      label.textContent = fmt(k, params[k]);
+      startTrace();
+    });
+  });
+
+  document.querySelectorAll('.preset-btn').forEach(b =>
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.preset-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      applyPreset(b.dataset.preset);
+    })
+  );
+
+  document.getElementById('redraw').addEventListener('click', startTrace);
+  window.addEventListener('resize', () => { resize(); startTrace(); });
+
+  // boot
+  document.querySelector('[data-preset="flower"]').classList.add('active');
+  resize();
+  startTrace();
+</script>
+
+</body>
+</html>
