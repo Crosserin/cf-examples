@@ -30,7 +30,7 @@ CSS and vanilla JS pushed to their edges, zero frameworks. For when the brief is
 | Work | What it demonstrates |
 |------|---------------------|
 | **Cityscape, 3am** | A night skyline with drifting clouds, animated windows, and a plane crossing the horizon. Every pixel is a `<div>`. |
-| **Kinetic glyphs** | Typography that breathes with your scroll position. ~40 lines of JS driving a single CSS custom property. |
+| **Trace** | A digital harmonograph — four coupled damped oscillators drawing their own conversation. Six presets, seven live dials, oscilloscope graticule, infinite curves. |
 | **Field of particles** | ~220 canvas particles flocking toward your cursor with live sliders for attract / damping / trail. No libraries. |
 
 ### 🤖 Machine — edge AI
