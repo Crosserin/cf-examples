@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geo-forensics · X = Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,wght@1,300&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <span class="brand">X <em>=</em> Consulting</span>
+  <span class="breadcrumb"><a href="/red/">paths</a><span>&rsaquo;</span><a href="/research/">research</a><span>&rsaquo;</span>geo-forensics</span>
+</nav>
+
+<section class="opening">
+  <div class="chapter">[ &sect;007.ii &mdash; work ii &middot; geo-forensics ]</div>
+  <h1>What the <em>edge</em> already knows.</h1>
+  <p>Every request that reaches Cloudflare's network gets tagged with server-side metadata before your code ever sees it. No JavaScript, no geolocation prompt, no tracking pixel &mdash; just the plain fact of which data center answered the TCP handshake.</p>
+  <p>This page reads <code>request.cf</code> on the edge and hands it back to the client. What appears below is what Cloudflare knows about <em>you</em>, right now.</p>
+</section>
+
+<section class="dossier">
+  <div class="dossier-head">
+    <span class="label">[ subject_file ]</span>
+    <span class="status" id="status">&mdash; resolving &mdash;</span>
+  </div>
+  <div class="readout" id="readout"></div>
+  <div class="dossier-foot">
+    <span class="label">source: Pages Functions &rarr; request.cf</span>
+    <button class="refresh" onclick="loadDossier()">&#8634; refresh</button>
+  </div>
+</section>
+
+<section class="notes">
+  <div class="chapter">[ notes ]</div>
+  <ul>
+    <li>All fields below are resolved server-side in a Pages Function. Nothing is computed on the client.</li>
+    <li>CF data is inherent to Cloudflare's network &mdash; no browser geolocation permissions required.</li>
+    <li>Accuracy of <code>city</code> and <code>latitude/longitude</code> is coarse (~data center level, not street level).</li>
+    <li>The <code>colo</code> field is Cloudflare's 3-letter airport code for the data center that handled the request.</li>
+  </ul>
+</section>
+
+<footer>
+  <span>work ii &middot; research</span>
+  <a href="/research/">&larr; back to research</a>
+</footer>
+
+<script>
+  async function loadDossier() {
+    const status = document.getElementById('status');
+    const readout = document.getElementById('readout');
+    status.textContent = '— resolving —';
+    readout.innerHTML = '';
+    try {
+      const res = await fetch('api/whoami');
+      const data = await res.json();
+      status.textContent = 'resolved ✓';
+      const order = [
+        ['ip', 'client IP'], ['country', 'country'], ['region', 'region'],
+        ['city', 'city'], ['postalCode', 'postal'], ['continent', 'continent'],
+        ['timezone', 'timezone'], ['latitude', 'lat'], ['longitude', 'lon'],
+        ['colo', 'CF data center'], ['asn', 'ASN'], ['asOrganization', 'network'],
+        ['httpProtocol', 'protocol'], ['tlsVersion', 'TLS'], ['tlsCipher', 'cipher'],
+        ['requestPriority', 'HTTP/3 priority'],
+      ];
+      readout.innerHTML = order.map(([k, label]) => {
+        const v = data[k];
+        const val = (v === null || v === undefined || v === '') ? '—' : String(v);
+        return `<div class="row"><span class="k">${label}</span><span class="v">${val}</span></div>`;
+      }).join('');
+    } catch (e) {
+      status.textContent = 'resolution failed';
+      readout.innerHTML = `<div class="err">network error: ${e.message}</div>`;
+    }
+  }
+  loadDossier();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal · X = Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,wght@1,300&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <span class="brand">X <em>=</em> Consulting</span>
+  <span class="breadcrumb"><a href="/red/">paths</a><span>&rsaquo;</span><a href="/research/">research</a><span>&rsaquo;</span>signal</span>
+</nav>
+
+<section class="opening">
+  <div class="chapter">[ &sect;007.iii &mdash; work iii &middot; signal ]</div>
+  <h1>The <em>atmosphere</em> is always broadcasting.</h1>
+  <p>Temperature, pressure, humidity, wind &mdash; free public data, refreshed hourly, covering every square kilometer of the planet. Open-Meteo serves it over HTTPS without keys, rate limits, or tracking. This page fetches it through a Cloudflare Pages Function, so the browser never hits the upstream directly.</p>
+  <p>Default reading is pulled from your edge-detected coordinates. Override with any lat/lon.</p>
+</section>
+
+<section class="controls">
+  <div class="ctrl-row">
+    <label>latitude<input id="lat" type="number" step="0.0001" placeholder="e.g. 45.5152"></label>
+    <label>longitude<input id="lon" type="number" step="0.0001" placeholder="e.g. -122.6784"></label>
+    <button id="fetch">&darr; pull reading</button>
+  </div>
+  <div class="ctrl-hint" id="hint">&mdash; using your edge-detected location &mdash;</div>
+</section>
+
+<section class="readout">
+  <div class="panel panel-now">
+    <div class="panel-label">[ surface conditions ]</div>
+    <div class="metric-grid" id="surface"></div>
+  </div>
+  <div class="panel panel-wind">
+    <div class="panel-label">[ wind vector ]</div>
+    <div class="wind-display">
+      <svg viewBox="0 0 200 200" class="wind-svg">
+        <circle cx="100" cy="100" r="82" fill="none" stroke="#1f1f1f" stroke-width="1"/>
+        <circle cx="100" cy="100" r="60" fill="none" stroke="#1f1f1f" stroke-width="1"/>
+        <line x1="100" y1="18" x2="100" y2="28" stroke="#4a4a4a" stroke-width="1"/>
+        <line x1="100" y1="172" x2="100" y2="182" stroke="#4a4a4a" stroke-width="1"/>
+        <line x1="18" y1="100" x2="28" y2="100" stroke="#4a4a4a" stroke-width="1"/>
+        <line x1="172" y1="100" x2="182" y2="100" stroke="#4a4a4a" stroke-width="1"/>
+        <text x="100" y="12" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#4a4a4a">N</text>
+        <text x="100" y="195" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#4a4a4a">S</text>
+        <text x="10" y="104" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#4a4a4a">W</text>
+        <text x="190" y="104" text-anchor="middle" font-family="JetBrains Mono" font-size="9" fill="#4a4a4a">E</text>
+        <g id="arrow" transform="rotate(0 100 100)">
+          <line x1="100" y1="100" x2="100" y2="40" stroke="#fb2c36" stroke-width="2"/>
+          <polygon points="100,32 94,48 106,48" fill="#fb2c36"/>
+        </g>
+      </svg>
+      <div class="wind-meta" id="wind-meta"></div>
+    </div>
+  </div>
+</section>
+
+<section class="notes">
+  <div class="chapter">[ notes ]</div>
+  <ul>
+    <li>Data source: <code>api.open-meteo.com</code> &mdash; free, no key required.</li>
+    <li>Route: browser &rarr; <code>/research/signal/api/atmosphere</code> &rarr; Pages Function &rarr; Open-Meteo. Browser never sees the upstream.</li>
+    <li>Wind direction is the compass direction the wind is coming <em>from</em>, not the direction it's blowing toward.</li>
+    <li>Pressure is reported at mean sea level, adjusted for elevation.</li>
+  </ul>
+</section>
+
+<footer>
+  <span>work iii &middot; research</span>
+  <a href="/research/">&larr; back to research</a>
+</footer>
+
+<script>
+  const latEl = document.getElementById('lat');
+  const lonEl = document.getElementById('lon');
+  const hintEl = document.getElementById('hint');
+  const surfaceEl = document.getElementById('surface');
+  const windMeta = document.getElementById('wind-meta');
+  const arrow = document.getElementById('arrow');
+
+  async function fetchReading(lat, lon) {
+    const qs = (lat != null && lon != null) ? `?lat=${lat}&lon=${lon}` : '';
+    hintEl.textContent = '— querying atmosphere —';
+    try {
+      const res = await fetch('api/atmosphere' + qs);
+      if (!res.ok) { hintEl.textContent = 'upstream error ' + res.status; return; }
+      render(await res.json());
+    } catch (e) { hintEl.textContent = 'network error: ' + e.message; }
+  }
+
+  function render(d) {
+    const loc = d.resolved_location || {};
+    const curr = d.current || {};
+    const locStr = [loc.city, loc.region, loc.country].filter(Boolean).join(', ') || 'unknown';
+    const latS = typeof loc.latitude === 'number' ? loc.latitude.toFixed(3) : '—';
+    const lonS = typeof loc.longitude === 'number' ? loc.longitude.toFixed(3) : '—';
+    hintEl.textContent = `${locStr} · ${latS}, ${lonS} · ${curr.time || '—'}`;
+
+    const metrics = [
+      { k: 'temperature',    v: fmt(curr.temperature_2m, ' °C'),   sub: fmt(c2f(curr.temperature_2m), ' °F') },
+      { k: 'humidity',       v: fmt(curr.relative_humidity_2m, '%') },
+      { k: 'pressure',       v: fmt(curr.pressure_msl, ' hPa'),    sub: fmt(hpa2inhg(curr.pressure_msl), ' inHg') },
+      { k: 'wind speed',     v: fmt(curr.wind_speed_10m, ' km/h'), sub: fmt(kmh2mph(curr.wind_speed_10m), ' mph') },
+      { k: 'wind direction', v: fmt(curr.wind_direction_10m, '°'), sub: degToCompass(curr.wind_direction_10m) },
+      { k: 'cloud cover',    v: fmt(curr.cloud_cover, '%') },
+    ];
+    surfaceEl.innerHTML = metrics.map(m =>
+      `<div class="metric"><div class="m-k">${m.k}</div><div class="m-v">${m.v}</div>${m.sub ? `<div class="m-sub">${m.sub}</div>` : ''}</div>`
+    ).join('');
+
+    if (curr.wind_direction_10m != null) {
+      arrow.setAttribute('transform', `rotate(${curr.wind_direction_10m} 100 100)`);
+      windMeta.innerHTML = `
+        <div class="wm-row"><span>from</span><span>${degToCompass(curr.wind_direction_10m)}</span></div>
+        <div class="wm-row"><span>bearing</span><span>${Math.round(curr.wind_direction_10m)}°</span></div>
+        <div class="wm-row"><span>speed</span><span>${fmt(curr.wind_speed_10m, ' km/h')}</span></div>
+      `;
+    }
+  }
+
+  function fmt(n, u = '') { return (n == null || Number.isNaN(n)) ? '—' : (+n).toFixed(1) + u; }
+  function c2f(c) { return c == null ? null : c * 9/5 + 32; }
+  function hpa2inhg(h) { return h == null ? null : h * 0.02953; }
+  function kmh2mph(k) { return k == null ? null : k * 0.621371; }
+  function degToCompass(deg) {
+    if (deg == null) return '—';
+    const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+    return dirs[Math.round(deg / 22.5) % 16];
+  }
+
+  document.getElementById('fetch').addEventListener('click', () => {
+    const lat = parseFloat(latEl.value);
+    const lon = parseFloat(lonEl.value);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      hintEl.textContent = 'enter numeric lat/lon or leave blank to use edge location';
+      return;
+    }
+    fetchReading(lat, lon);
+  });
+
+  fetchReading(null, null);
+</script>
+
+</body>
+</html>
