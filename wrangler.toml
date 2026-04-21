@@ -9,12 +9,12 @@ pages_build_output_dir = "."
 
 [[kv_namespaces]]
 binding = "KV"
-id = "REPLACE_WITH_KV_ID"
+id = "295a5c2ee7214c9e8bc076e38665b76f"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "cf-examples-db"
-database_id = "REPLACE_WITH_D1_ID"
+database_id = "a0a7579e-9b2b-4348-ac39-cadc94cd42df"
 
 [[r2_buckets]]
 binding = "R2"
