@@ -173,7 +173,7 @@
 
   async function loadEntries(reset = false) {
     try {
-      const url = cursor ? `/api/entries?cursor=${cursor}` : '/api/entries';
+      const url = cursor ? `api/entries?cursor=${cursor}` : 'api/entries';
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
@@ -200,7 +200,7 @@
     submitBtn.disabled = true;
 
     try {
-      const res = await fetch('/api/entries', {
+      const res = await fetch('api/entries', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({

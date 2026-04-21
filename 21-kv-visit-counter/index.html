@@ -65,7 +65,7 @@
 </div>
 
 <script>
-  fetch('/api/count')
+  fetch('api/count')
     .then(r => r.json())
     .then(({ count }) => {
       const el = document.getElementById('count');

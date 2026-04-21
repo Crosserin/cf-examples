@@ -70,7 +70,7 @@
     const greeting = document.getElementById('greeting');
 
     try {
-      const res = await fetch('/api/geo');
+      const res = await fetch('api/geo');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
 
