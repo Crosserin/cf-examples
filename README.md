@@ -1,6 +1,6 @@
 # cf-examples 🔴
 
-> Nine live examples running on Cloudflare's edge. Pure CSS art, edge AI, RAG, solar engineering, atmospheric data. One repo, one deploy, no servers to babysit.
+> Eleven live examples running on Cloudflare's edge. Pure CSS art, edge AI, RAG, AI-powered forms, solar engineering, atmospheric data. One repo, one deploy, no servers to babysit.
 
 **→ [cf-examples.pages.dev](https://cf-examples.pages.dev)** — pick a pill.
 
@@ -32,6 +32,7 @@ CSS and vanilla JS pushed to their edges, zero frameworks. For when the brief is
 | **Cityscape, 3am** | A night skyline with drifting clouds, animated windows, and a plane crossing the horizon. Every pixel is a `<div>`. |
 | **Trace** | A digital harmonograph — four coupled damped oscillators drawing their own conversation. Six presets, seven live dials, oscilloscope graticule, infinite curves. |
 | **Field of particles** | ~220 canvas particles flocking toward your cursor with live sliders for attract / damping / trail. No libraries. |
+| **The muse** 🎨 | Sketch-to-image pipeline. Draw on a canvas → uform-gen2 vision model reads it → Flux-1-schnell generates an interpretation from your prompt plus what the vision model saw. The hand-to-machine handoff, with receipts. |
 
 ### 🤖 Machine — edge AI
 Llama, embeddings, vision models, RAG. All on Workers AI, all on Cloudflare's GPUs, all without a single call to an external API.
@@ -41,6 +42,7 @@ Llama, embeddings, vision models, RAG. All on Workers AI, all on Cloudflare's GP
 | **The Oracle** | Streaming chat with Llama 3.1 8B over server-sent events. Tokens arrive as the model generates them. |
 | **Sight** | Drop an image → Pages Function stores it in R2 → runs ResNet-50 for classification and uform-gen2 for a caption → returns tags with confidence bars, caption, and R2 key. |
 | **Ghost in the corpus** | RAG over a 12-passage knowledge base. Embeds your query with BGE, cosine-matches against Float32Array vectors stored as BLOBs in D1, and streams a Llama synthesis citing the top 3 sources inline. |
+| **The sentinel** 🛡️ | Contact form that pre-reads itself. Llama 3.1 classifies every submission (sales / support / partnership / spam / other), rates urgency, extracts topics, and drafts a reply — all in parallel. D1-backed. The inbox that reads itself. |
 
 ### 🧭 Research — applied tools
 Real client problems, stripped of specifics, made public.
@@ -59,8 +61,8 @@ Real client problems, stripped of specifics, made public.
 |-------|------|
 | **Hosting** | Cloudflare Pages |
 | **Backend** | Pages Functions (TypeScript) |
-| **AI** | Workers AI — Llama 3.1 8B, BGE-base-en-v1.5, ResNet-50, uform-gen2-qwen-500m |
-| **Data** | D1 (SQLite, corpus + embeddings) · R2 (image uploads) · KV (bound, reserved) |
+| **AI** | Workers AI — Llama 3.1 8B, BGE-base-en-v1.5, ResNet-50, uform-gen2-qwen-500m, Flux-1-schnell |
+| **Data** | D1 (corpus + embeddings + triaged contacts) · R2 (image uploads + generated art) · KV (bound, reserved) |
 | **Fonts** | Inter · JetBrains Mono · Fraunces |
 | **Frontend** | Hand-written HTML / CSS / JS. No framework. No build step. No transpilation. |
 
@@ -76,15 +78,20 @@ Browser
    ▼
 Cloudflare Pages  (static HTML + CSS + JS)
    │
+   ├── /art/muse/submit                 → Workers AI (uform vision → flux generate) → R2
+   ├── /art/muse/image/[key]            → R2 (read)
+   │
    ├── /machine/oracle/api/chat         → Workers AI (Llama 3.1 8B, streaming)
    ├── /machine/sight/api/see           → R2 (store)  +  Workers AI (ResNet + uform)
    ├── /machine/ghost/api/ask           → Workers AI (BGE) → D1 (cosine) → Llama stream
+   ├── /machine/sentinel/submit         → Workers AI (Llama x2 parallel) → D1 (contacts)
+   │
    ├── /research/photon/api/string-size → Pure math (NEC 690.7 / 690.8)
    ├── /research/geo/api/whoami         → request.cf edge properties
    └── /research/signal/api/atmosphere  → fetch → Open-Meteo (cached 5 min)
 ```
 
-Every function sits at `functions/<path>/api/<name>.ts`. Filesystem mirrors URL path. No route config, no server setup.
+Every function file lives under `functions/` and its filesystem path mirrors the URL. No route config, no server setup.
 
 ---
 
