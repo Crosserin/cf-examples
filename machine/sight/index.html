@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sight · X = Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,wght@1,300&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <span class="brand">X <em>=</em> Consulting</span>
+  <span class="breadcrumb"><a href="/red/">paths</a><span>&rsaquo;</span><a href="/machine/">machine</a><span>&rsaquo;</span>sight</span>
+</nav>
+
+<section class="opening">
+  <div class="chapter">[ &sect;006.ii &mdash; work ii &middot; sight ]</div>
+  <h1>The model <em>sees</em>.</h1>
+  <p>Drop an image. A Pages Function streams it to R2 object storage, then runs two Workers AI models over the raw bytes &mdash; one for classification, one for description. No data leaves Cloudflare's network.</p>
+</section>
+
+<section class="drop">
+  <label for="file" class="dropzone" id="zone">
+    <div class="zone-inner" id="zoneInner">
+      <div class="zone-icon">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <rect x="6" y="10" width="36" height="28" rx="2" stroke="#fb2c36" stroke-width="1.5"/>
+          <circle cx="16" cy="20" r="3" fill="#fb2c36"/>
+          <path d="M6 32 L18 22 L26 28 L42 16" stroke="#fb2c36" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="zone-text">drop image or click to browse</div>
+      <div class="zone-sub">jpg / png / webp &middot; max 4 MB</div>
+    </div>
+    <input type="file" id="file" accept="image/*" hidden>
+  </label>
+</section>
+
+<section class="result" id="result" hidden>
+  <div class="result-grid">
+    <div class="preview">
+      <img id="preview" alt="uploaded image">
+    </div>
+    <div class="analysis">
+      <div class="panel">
+        <div class="panel-label">[ caption ]</div>
+        <div class="caption" id="caption">&mdash;</div>
+      </div>
+      <div class="panel">
+        <div class="panel-label">[ classification &middot; top 5 ]</div>
+        <div class="tags" id="tags"></div>
+      </div>
+      <div class="panel meta-panel">
+        <div class="meta-row"><span>R2 key</span><span id="r2key" class="mono">&mdash;</span></div>
+        <div class="meta-row"><span>caption model</span><span class="mono">uform-gen2-qwen-500m</span></div>
+        <div class="meta-row"><span>tag model</span><span class="mono">resnet-50</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="status" id="status" hidden>
+  <div class="status-inner" id="statusText">&mdash; processing &mdash;</div>
+</section>
+
+<footer>
+  <span>work ii &middot; machine</span>
+  <a href="/machine/">&larr; back to machine</a>
+</footer>
+
+<script>
+  const fileInput = document.getElementById('file');
+  const zone = document.getElementById('zone');
+  const result = document.getElementById('result');
+  const preview = document.getElementById('preview');
+  const captionEl = document.getElementById('caption');
+  const tagsEl = document.getElementById('tags');
+  const r2keyEl = document.getElementById('r2key');
+  const statusEl = document.getElementById('status');
+  const statusTxt = document.getElementById('statusText');
+
+  fileInput.addEventListener('change', e => handle(e.target.files[0]));
+
+  ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('drag'); }));
+  zone.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) handle(f); });
+
+  async function handle(file) {
+    if (!file) return;
+    if (file.size > 4 * 1024 * 1024) { setStatus('file too large (> 4 MB)', true); return; }
+
+    preview.src = URL.createObjectURL(file);
+    result.hidden = true;
+    statusEl.hidden = false;
+    setStatus('uploading to R2 + running inference');
+
+    const body = new FormData();
+    body.append('image', file);
+    try {
+      const res = await fetch('api/see', { method: 'POST', body });
+      if (!res.ok) { setStatus(`error ${res.status}: ${await res.text()}`, true); return; }
+      const data = await res.json();
+      render(data);
+    } catch (e) {
+      setStatus('network error: ' + e.message, true);
+    }
+  }
+
+  function render(d) {
+    captionEl.textContent = d.caption || '(no caption)';
+    r2keyEl.textContent = d.r2_key || '—';
+    tagsEl.innerHTML = (d.tags || []).slice(0, 5).map(t =>
+      `<div class="tag">
+        <span class="tag-label">${escapeHtml(t.label || t)}</span>
+        <span class="tag-bar"><span class="tag-fill" style="width:${Math.round((t.score || 0) * 100)}%"></span></span>
+        <span class="tag-score">${((t.score || 0) * 100).toFixed(1)}%</span>
+      </div>`
+    ).join('');
+    statusEl.hidden = true;
+    result.hidden = false;
+  }
+
+  function setStatus(t, isErr = false) {
+    statusEl.hidden = false;
+    statusTxt.textContent = t;
+    statusTxt.style.color = isErr ? '#fb2c36' : '';
+  }
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+</script>
+
+</body>
+</html>

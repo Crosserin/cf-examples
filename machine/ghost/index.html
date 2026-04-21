@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ghost in the corpus · X = Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,wght@1,300&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <span class="brand">X <em>=</em> Consulting</span>
+  <span class="breadcrumb"><a href="/red/">paths</a><span>&rsaquo;</span><a href="/machine/">machine</a><span>&rsaquo;</span>ghost</span>
+</nav>
+
+<section class="opening">
+  <div class="chapter">[ &sect;006.iii &mdash; work iii &middot; ghost in the corpus ]</div>
+  <h1>A <em>ghost</em> that reads.</h1>
+  <p>A small retrieval-augmented-generation demo. Twelve paragraphs about Cloudflare's edge platform sit in a D1 table, each with a 768-dimensional embedding stored as a BLOB. Your question is embedded in-flight, matched against the corpus by cosine similarity, and the top three hits are handed to Llama 3.1 as grounding context.</p>
+  <p>Try: "What's the difference between KV and D1?" or "How do Pages Functions route requests?"</p>
+</section>
+
+<section class="ask">
+  <form id="form" class="ask-form">
+    <input type="text" id="q" placeholder="ask a question about the corpus..." autocomplete="off" required>
+    <button type="submit" id="submit">&darr; ask</button>
+  </form>
+  <div class="ask-hint" id="hint">&mdash; idle &mdash;</div>
+</section>
+
+<section class="response" id="response" hidden>
+  <div class="panel sources-panel">
+    <div class="panel-label">[ retrieved sources ]</div>
+    <div class="sources" id="sources"></div>
+  </div>
+  <div class="panel answer-panel">
+    <div class="panel-label">[ synthesized answer ]</div>
+    <div class="answer" id="answer"></div>
+  </div>
+</section>
+
+<section class="construction">
+  <div class="chapter">[ construction ]</div>
+  <p>Stack: Workers AI <code>bge-base-en-v1.5</code> for 768-d embeddings, D1 for corpus + vector storage (as Float32Array blobs), cosine similarity in the Pages Function, Llama 3.1 8B for synthesis. The response streams over SSE; the first event is the sources list, every subsequent event is a token.</p>
+</section>
+
+<footer>
+  <span>work iii &middot; machine</span>
+  <a href="/machine/">&larr; back to machine</a>
+</footer>
+
+<script>
+  const form = document.getElementById('form');
+  const qEl = document.getElementById('q');
+  const submitBtn = document.getElementById('submit');
+  const hintEl = document.getElementById('hint');
+  const respEl = document.getElementById('response');
+  const sourcesEl = document.getElementById('sources');
+  const answerEl = document.getElementById('answer');
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const q = qEl.value.trim();
+    if (!q) return;
+
+    submitBtn.disabled = true;
+    hintEl.textContent = '— embedding query —';
+    respEl.hidden = false;
+    sourcesEl.innerHTML = '';
+    answerEl.textContent = '';
+
+    try {
+      const res = await fetch('api/ask', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ query: q }),
+      });
+      if (!res.ok) {
+        const body = await res.text();
+        hintEl.textContent = `error ${res.status}: ${body.slice(0, 200)}`;
+        submitBtn.disabled = false;
+        return;
+      }
+      hintEl.textContent = '— retrieving + synthesizing —';
+      await readStream(res.body);
+      hintEl.textContent = '— complete —';
+    } catch (err) {
+      hintEl.textContent = 'network error: ' + err.message;
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  async function readStream(body) {
+    const reader = body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6).trim();
+        if (data === '[DONE]') return;
+        try {
+          const j = JSON.parse(data);
+          if (j.type === 'sources') renderSources(j.sources);
+          else if (j.response != null) answerEl.textContent += j.response;
+        } catch { /* ignore non-JSON heartbeats */ }
+      }
+    }
+  }
+
+  function renderSources(sources) {
+    sourcesEl.innerHTML = sources.map((s, i) =>
+      `<div class="source">
+        <div class="src-head">
+          <span class="src-n">${i + 1}</span>
+          <span class="src-title">${escapeHtml(s.title)}</span>
+          <span class="src-score">${(s.score * 100).toFixed(1)}%</span>
+        </div>
+        <div class="src-excerpt">${escapeHtml(s.excerpt)}${s.excerpt.length >= 160 ? '…' : ''}</div>
+      </div>`
+    ).join('');
+  }
+
+  function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+</script>
+
+</body>
+</html>

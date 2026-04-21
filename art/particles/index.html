@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field of particles · X = Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,wght@1,300&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<canvas id="field"></canvas>
+
+<nav>
+  <span class="brand">X <em>=</em> Consulting</span>
+  <span class="breadcrumb"><a href="/red/">paths</a><span>&rsaquo;</span><a href="/art/">art</a><span>&rsaquo;</span>particles</span>
+</nav>
+
+<section class="opening">
+  <div class="chapter">[ &sect;005.iii &mdash; work iii &middot; field of particles ]</div>
+  <h1>A <em>field</em> that follows.</h1>
+  <p>Move your cursor. Each particle independently steers toward it with a capped force, limited max speed, and a fade trail. No library; just a <code>&lt;canvas&gt;</code>, a for-loop, and <code>requestAnimationFrame</code>.</p>
+</section>
+
+<section class="controls">
+  <label>count<input type="range" id="count" min="40" max="400" step="20" value="220"><span id="countVal">220</span></label>
+  <label>attract<input type="range" id="attract" min="0" max="100" step="2" value="36"><span id="attractVal">36</span></label>
+  <label>damping<input type="range" id="damping" min="70" max="99" step="1" value="92"><span id="dampingVal">92</span></label>
+  <label>trail<input type="range" id="trail" min="5" max="30" step="1" value="12"><span id="trailVal">12</span></label>
+  <button id="reset">reset</button>
+</section>
+
+<footer>
+  <span>work iii &middot; art</span>
+  <a href="/art/">&larr; back to art</a>
+</footer>
+
+<script>
+  const canvas = document.getElementById('field');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  let W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const particles = [];
+  const mouse = { x: -1e6, y: -1e6, active: false };
+
+  const params = {
+    count: 220,
+    attract: 0.036,
+    damping: 0.92,
+    trail: 0.12,
+    maxSpeed: 4.5,
+  };
+
+  function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function spawn(n) {
+    particles.length = 0;
+    for (let i = 0; i < n; i++) {
+      particles.push({
+        x: Math.random() * W, y: Math.random() * H,
+        vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
+        size: 0.8 + Math.random() * 1.4,
+      });
+    }
+  }
+
+  function step() {
+    // Trail effect: semi-transparent black over existing canvas
+    ctx.fillStyle = `rgba(5,5,5,${params.trail})`;
+    ctx.fillRect(0, 0, W, H);
+
+    for (const p of particles) {
+      if (mouse.active) {
+        const dx = mouse.x - p.x;
+        const dy = mouse.y - p.y;
+        const d2 = dx*dx + dy*dy;
+        if (d2 > 25) {
+          const d = Math.sqrt(d2);
+          p.vx += (dx / d) * params.attract;
+          p.vy += (dy / d) * params.attract;
+        }
+      }
+      p.vx *= params.damping;
+      p.vy *= params.damping;
+      const s = Math.hypot(p.vx, p.vy);
+      if (s > params.maxSpeed) { p.vx = p.vx / s * params.maxSpeed; p.vy = p.vy / s * params.maxSpeed; }
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x += W; else if (p.x > W) p.x -= W;
+      if (p.y < 0) p.y += H; else if (p.y > H) p.y -= H;
+
+      const hot = Math.min(1, s / 3);
+      ctx.fillStyle = `rgba(251,44,54,${0.35 + hot * 0.55})`;
+      ctx.fillRect(p.x - p.size, p.y - p.size, p.size * 2, p.size * 2);
+    }
+    requestAnimationFrame(step);
+  }
+
+  window.addEventListener('resize', () => { resize(); });
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
+  window.addEventListener('touchmove', e => { if (e.touches[0]) { mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; mouse.active = true; } }, { passive: true });
+  window.addEventListener('mouseleave', () => { mouse.active = false; });
+
+  function bind(id, key, fmt = v => v) {
+    const el = document.getElementById(id);
+    const label = document.getElementById(id + 'Val');
+    el.addEventListener('input', () => {
+      label.textContent = fmt(el.value);
+      const v = parseFloat(el.value);
+      if (id === 'count') { params.count = v; spawn(v); }
+      else if (id === 'attract') params.attract = v / 1000;
+      else if (id === 'damping') params.damping = v / 100;
+      else if (id === 'trail')   params.trail   = v / 100;
+    });
+  }
+  bind('count');
+  bind('attract');
+  bind('damping');
+  bind('trail');
+  document.getElementById('reset').addEventListener('click', () => spawn(params.count));
+
+  resize();
+  spawn(params.count);
+  step();
+</script>
+
+</body>
+</html>

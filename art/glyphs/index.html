@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kinetic glyphs · X = Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,wght@1,200..900&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <span class="brand">X <em>=</em> Consulting</span>
+  <span class="breadcrumb"><a href="/red/">paths</a><span>&rsaquo;</span><a href="/art/">art</a><span>&rsaquo;</span>kinetic glyphs</span>
+</nav>
+
+<section class="opening">
+  <div class="chapter">[ &sect;005.ii &mdash; work ii &middot; kinetic glyphs ]</div>
+  <h1>Letters <em>breathe</em>.</h1>
+  <p>Type that reacts to where it sits in your viewport. Each letter tracks its own vertical position and transforms in response &mdash; stretching on approach, collapsing on departure. Scroll slowly.</p>
+  <div class="hint">&darr; &darr; &darr;</div>
+</section>
+
+<section class="specimen">
+  <div class="glyph"><span>C</span></div>
+  <div class="glyph"><span>O</span></div>
+  <div class="glyph"><span>N</span></div>
+  <div class="glyph"><span>S</span></div>
+  <div class="glyph"><span>U</span></div>
+  <div class="glyph"><span>L</span></div>
+  <div class="glyph"><span>T</span></div>
+  <div class="glyph"><span>.</span></div>
+</section>
+
+<section class="closing">
+  <div class="chapter">[ construction ]</div>
+  <p>Every letter is a single <code>&lt;span&gt;</code>. On every <code>scroll</code> event, JavaScript computes each glyph's distance from the viewport center, normalizes it to 0&ndash;1, and writes it to a CSS custom property <code>--p</code>. All the motion is then just <code>transform</code> and <code>color</code> doing arithmetic on that one number.</p>
+  <p>No libraries. No animation frames. ~40 lines of vanilla JS.</p>
+</section>
+
+<footer>
+  <span>work ii &middot; art</span>
+  <a href="/art/">&larr; back to art</a>
+</footer>
+
+<script>
+  const glyphs = document.querySelectorAll('.glyph');
+  function update() {
+    const vh = window.innerHeight;
+    glyphs.forEach(g => {
+      const r = g.getBoundingClientRect();
+      const center = r.top + r.height / 2;
+      const dist = Math.abs(center - vh / 2) / (vh / 2);
+      const p = Math.max(0, 1 - dist);
+      g.style.setProperty('--p', p.toFixed(3));
+    });
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+</script>
+
+</body>
+</html>
