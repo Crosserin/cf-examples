@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Oracle · the machine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,wght@1,300&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <span class="brand">X <em>=</em> Consulting</span>
+  <span class="breadcrumb"><a href="/red/">paths</a><span>›</span><a href="/machine/">machine</a><span>›</span>the oracle</span>
+  <div class="status"><span class="status-dot"></span><span>llama 3.1 · streaming</span></div>
+</nav>
+
+<main>
+  <div id="chat" class="chat">
+    <div class="intro">
+      <div class="intro-label">[ §006 — work i · the oracle ]</div>
+      <h1>Ask the <em>oracle</em>.</h1>
+      <p>Every token you're about to see streams from a GPU somewhere on the Cloudflare network. The model is Llama 3.1 8B. There is no OpenAI call. There is no external service.</p>
+      <div class="suggestions">
+        <button class="suggest" data-q="Explain Cloudflare Workers AI in one short paragraph.">Explain Workers AI</button>
+        <button class="suggest" data-q="What's the difference between the edge and a traditional cloud server?">Edge vs. cloud</button>
+        <button class="suggest" data-q="Give me three examples of what I could build with D1 and Workers AI together.">D1 + AI ideas</button>
+        <button class="suggest" data-q="What are you? Keep it to two sentences.">What are you?</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="composer-wrap">
+  <form class="composer" id="form">
+    <textarea id="input" placeholder="speak." rows="1" autocomplete="off"></textarea>
+    <button type="submit" id="submit">send →</button>
+  </form>
+</div>
+
+<script>
+  const chat = document.getElementById('chat');
+  const form = document.getElementById('form');
+  const input = document.getElementById('input');
+  const submit = document.getElementById('submit');
+  const intro = chat.querySelector('.intro');
+  const history = [];
+
+  input.addEventListener('input', () => {
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 140) + 'px';
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+  });
+
+  // suggestion chips
+  document.querySelectorAll('.suggest').forEach(b => {
+    b.addEventListener('click', () => {
+      input.value = b.dataset.q;
+      form.requestSubmit();
+    });
+  });
+
+  function appendMessage(role, content = '') {
+    const msg = document.createElement('div');
+    msg.className = `msg ${role}`;
+    msg.innerHTML = `<div class="msg-label">${role === 'user' ? 'you' : 'oracle'}</div><div class="bubble"></div>`;
+    msg.querySelector('.bubble').textContent = content;
+    chat.appendChild(msg);
+    window.scrollTo(0, document.body.scrollHeight);
+    return msg.querySelector('.bubble');
+  }
+
+  async function send(userText) {
+    if (intro) intro.remove();
+    history.push({ role: 'user', content: userText });
+    appendMessage('user', userText);
+    const bubble = appendMessage('assistant', '');
+    bubble.classList.add('cursor');
+    submit.disabled = true; input.disabled = true;
+
+    try {
+      const res = await fetch('api/chat', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ messages: history }),
+      });
+      if (!res.ok || !res.body) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '', full = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop() || '';
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6).trim();
+          if (data === '[DONE]') continue;
+          try {
+            const chunk = JSON.parse(data);
+            if (chunk.response) {
+              full += chunk.response;
+              bubble.textContent = full;
+              window.scrollTo(0, document.body.scrollHeight);
+            }
+          } catch {}
+        }
+      }
+      bubble.classList.remove('cursor');
+      history.push({ role: 'assistant', content: full });
+    } catch (err) {
+      bubble.classList.remove('cursor');
+      bubble.textContent = `error: ${err.message}`;
+      bubble.style.color = '#f87171';
+    } finally {
+      submit.disabled = false; input.disabled = false; input.focus();
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = ''; input.style.height = 'auto';
+    send(text);
+  });
+  input.focus();
+</script>
+</body>
+</html>

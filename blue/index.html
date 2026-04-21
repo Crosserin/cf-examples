@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thanks for playing.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+  :root {
+    --bg: #050505; --ink: #fafafa; --ink-dim: #a6a6a6; --ink-faint: #4a4a4a;
+    --rule: #1f1f1f; --red: #fb2c36;
+    --sans: 'Inter', system-ui, sans-serif; --mono: 'JetBrains Mono', monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans);
+    display: grid; place-items: center; padding: 40px; overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: radial-gradient(ellipse 90% 60% at 50% 40%, rgba(120,130,155,0.05), transparent 70%);
+    pointer-events: none;
+  }
+  .card { max-width: 520px; text-align: center; position: relative; z-index: 2; }
+  .label {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--ink-faint); letter-spacing: 0.25em; text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  h1 {
+    font-weight: 300; font-size: clamp(40px, 6vw, 64px);
+    line-height: 1; letter-spacing: -0.03em; margin-bottom: 24px;
+  }
+  h1 em { font-style: italic; color: var(--ink-dim); font-weight: 400; }
+  p { font-size: 16px; color: var(--ink-dim); line-height: 1.7; margin-bottom: 16px; }
+  .actions {
+    margin-top: 40px; display: flex; gap: 16px; justify-content: center;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .actions a {
+    padding: 12px 22px; border-radius: 6px; text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .actions .ghost { color: var(--ink-dim); border: 1px solid var(--rule); }
+  .actions .ghost:hover { border-color: var(--ink-faint); color: var(--ink); }
+  .actions .red {
+    background: var(--red); color: var(--bg); font-weight: 500;
+  }
+  .actions .red:hover { background: #ff4956; }
+  .sig {
+    margin-top: 40px; font-family: var(--mono); font-size: 10px;
+    color: var(--ink-faint); letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="label">[ §002 — end of line ]</div>
+  <h1>The story <em>ends.</em></h1>
+  <p>You wake up in your bed. You believe whatever you want to believe.</p>
+  <p>No hard feelings. The blue pill is a perfectly reasonable choice. Most of the internet is built on it.</p>
+  <div class="actions">
+    <a class="ghost" href="/">← back to the choice</a>
+    <a class="red" href="/red/">change your mind →</a>
+  </div>
+  <div class="sig">end chapter one.</div>
+</div>
+</body>
+</html>

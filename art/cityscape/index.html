@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cityscape, 3am · the art</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400&family=Fraunces:ital,wght@1,300&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <span class="brand">X <em>=</em> Consulting</span>
+  <a href="/art/">← the art</a>
+</nav>
+
+<div class="scene">
+  <div class="sky"></div>
+
+  <div class="stars">
+    <span class="star" style="top:5%;left:8%;"></span>
+    <span class="star" style="top:8%;left:18%;animation-delay:.5s"></span>
+    <span class="star" style="top:12%;left:34%;animation-delay:1s"></span>
+    <span class="star" style="top:4%;left:48%;animation-delay:1.5s"></span>
+    <span class="star" style="top:15%;left:62%;animation-delay:2s"></span>
+    <span class="star" style="top:9%;left:78%;animation-delay:2.5s"></span>
+    <span class="star" style="top:6%;left:88%;animation-delay:3s"></span>
+    <span class="star" style="top:22%;left:12%;animation-delay:.8s"></span>
+    <span class="star" style="top:18%;left:52%;animation-delay:1.2s"></span>
+    <span class="star" style="top:25%;left:72%;animation-delay:1.8s"></span>
+    <span class="star" style="top:11%;left:94%;animation-delay:2.2s"></span>
+  </div>
+
+  <div class="moon"></div>
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+  <div class="plane"></div>
+
+  <div class="layer layer-back">
+    <div class="building w" style="width:40px;height:110px"></div>
+    <div class="building w" style="width:60px;height:140px"></div>
+    <div class="building w" style="width:30px;height:90px"></div>
+    <div class="building w" style="width:50px;height:170px"></div>
+    <div class="building w" style="width:70px;height:120px"></div>
+    <div class="building w" style="width:40px;height:100px"></div>
+    <div class="building w" style="width:55px;height:150px"></div>
+    <div class="building w" style="width:45px;height:95px"></div>
+    <div class="building w" style="width:65px;height:130px"></div>
+    <div class="building w" style="width:35px;height:80px"></div>
+    <div class="building w" style="width:50px;height:160px"></div>
+    <div class="building w" style="width:60px;height:110px"></div>
+  </div>
+
+  <div class="layer layer-mid">
+    <div class="building w" style="width:50px;height:140px"></div>
+    <div class="building w ant" style="width:70px;height:210px"></div>
+    <div class="building w" style="width:40px;height:120px"></div>
+    <div class="building w" style="width:80px;height:170px"></div>
+    <div class="building w" style="width:55px;height:150px"></div>
+    <div class="building w" style="width:65px;height:130px"></div>
+    <div class="building w ant" style="width:50px;height:190px"></div>
+    <div class="building w" style="width:75px;height:160px"></div>
+    <div class="building w" style="width:45px;height:110px"></div>
+    <div class="building w" style="width:60px;height:180px"></div>
+  </div>
+
+  <div class="layer layer-front">
+    <div class="building w a" style="width:60px;height:180px"></div>
+    <div class="building w b ant" style="width:90px;height:260px"></div>
+    <div class="building w a" style="width:50px;height:150px"></div>
+    <div class="building w c" style="width:100px;height:220px"></div>
+    <div class="building w b" style="width:70px;height:190px"></div>
+    <div class="building w a ant" style="width:80px;height:240px"></div>
+    <div class="building w c" style="width:55px;height:170px"></div>
+    <div class="building w b" style="width:90px;height:200px"></div>
+    <div class="building w a" style="width:65px;height:160px"></div>
+    <div class="building w c ant" style="width:75px;height:230px"></div>
+    <div class="building w b" style="width:50px;height:140px"></div>
+  </div>
+
+  <div class="ground-glow"></div>
+
+  <div class="caption">
+    <div class="label">[ work i — cityscape, 3am ]</div>
+    <h1>no images,<br>no canvas.</h1>
+    <p>Every building, every window, every blinking antenna, the plane crossing the sky — plain HTML and CSS. Scroll down for the construction notes.</p>
+  </div>
+</div>
+
+<section class="about">
+  <div class="about-inner">
+    <h2>How it's <em>built</em>.</h2>
+    <p><strong>Buildings</strong> are <code>&lt;div&gt;</code>s with set widths and heights. Each layer (<code>back</code>, <code>mid</code>, <code>front</code>) sits at a different <code>bottom</code> offset with decreasing opacity and blur to fake atmospheric depth.</p>
+    <p><strong>Windows</strong> are layered <code>radial-gradient</code> background patterns — the dots-on-a-grid trick. Two offset layers per building give variation without templating each window manually.</p>
+    <p><strong>Flicker</strong> is <code>@keyframes</code> at different tempos per building class. <strong>Antennae</strong> are CSS pseudo-elements with a blink on the red safety light at the top.</p>
+    <p><strong>Clouds</strong> are blurred ellipses drifting horizontally at three different durations for parallax. The <strong>plane</strong> is a 3px red dot with a ghosted motion trail, keyframed to descend across the screen over 22 seconds.</p>
+    <p>The <strong>moon</strong> is a radial gradient with two pseudo-element craters and a soft outer glow. The <strong>sky</strong> is a stacked set of gradients faking the red-ish city-light haze on the horizon.</p>
+    <p>No bitmap images. No SVG. No canvas. Just the browser, rendering carefully-composed boxes.</p>
+  </div>
+  <div class="next">
+    <a href="/art/">← back to the atelier</a>
+    <a href="/machine/">the machine →</a>
+  </div>
+</section>
+
+</body>
+</html>

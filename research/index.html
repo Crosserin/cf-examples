@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The research · X = Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,wght@1,300&display=swap">
+<style>
+  :root {
+    --bg: #050505; --bg-raised: #0c0c0c; --ink: #fafafa; --ink-dim: #a6a6a6;
+    --ink-faint: #4a4a4a; --rule: #1f1f1f; --red: #fb2c36; --red-deep: #8f1820;
+    --sans: 'Inter', system-ui, sans-serif; --mono: 'JetBrains Mono', monospace;
+    --serif: 'Fraunces', serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--sans); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: radial-gradient(ellipse 80% 50% at 50% -5%, rgba(251,44,54,0.08), transparent 60%);
+  }
+  nav {
+    padding: 20px 32px; display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono); font-size: 11px; color: var(--ink-dim);
+    letter-spacing: 0.08em; text-transform: uppercase; position: relative; z-index: 2;
+  }
+  nav .brand { color: var(--ink); font-weight: 500; }
+  nav .brand em { color: var(--red); font-style: normal; font-weight: 500; }
+  nav .breadcrumb { color: var(--ink-faint); }
+  nav .breadcrumb span { margin: 0 8px; }
+  nav a { color: var(--ink-dim); text-decoration: none; }
+  nav a:hover { color: var(--red); }
+
+  .opening { max-width: 720px; margin: 60px auto 60px; padding: 0 32px; position: relative; z-index: 2; }
+  .chapter {
+    font-family: var(--mono); font-size: 11px; color: var(--red);
+    letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 20px;
+  }
+  h1 {
+    font-weight: 300; font-size: clamp(44px, 7vw, 80px);
+    line-height: 0.95; letter-spacing: -0.03em; margin-bottom: 28px;
+  }
+  h1 em { font-family: var(--serif); font-style: italic; color: var(--ink); font-weight: 300; }
+  .opening p { font-size: 16px; color: var(--ink-dim); line-height: 1.7; margin-bottom: 12px; }
+  .opening blockquote {
+    margin: 28px 0; padding: 14px 22px; border-left: 2px solid var(--red);
+    font-family: var(--serif); font-style: italic; font-size: 17px; color: var(--ink);
+    line-height: 1.5;
+  }
+  .opening blockquote cite {
+    display: block; margin-top: 10px; font-family: var(--mono);
+    font-size: 11px; font-style: normal; color: var(--ink-faint);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+
+  .works {
+    max-width: 1080px; margin: 0 auto 80px; padding: 0 32px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;
+    position: relative; z-index: 2;
+  }
+  .work {
+    background: var(--bg-raised); border: 1px solid var(--rule);
+    border-radius: 10px; overflow: hidden; text-decoration: none; color: inherit;
+    transition: transform 0.3s, border-color 0.3s;
+    min-height: 280px; display: flex; flex-direction: column;
+  }
+  .work:hover { transform: translateY(-4px); border-color: var(--red-deep); }
+  .work.locked { opacity: 0.5; cursor: not-allowed; }
+  .work.locked:hover { transform: none; border-color: var(--rule); }
+
+  .work-thumb {
+    height: 140px; position: relative; overflow: hidden;
+    border-bottom: 1px solid var(--rule);
+    background: #0a0a0a;
+    display: grid; place-items: center;
+  }
+  /* photon */
+  .photon-thumb {
+    background: #0a0a0a;
+  }
+  .photon-thumb svg { filter: drop-shadow(0 0 8px rgba(251,44,54,0.3)); }
+  /* geo */
+  .geo-thumb {
+    background-image:
+      linear-gradient(rgba(251,44,54,0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(251,44,54,0.08) 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-color: #0a0a0a;
+  }
+  .geo-thumb::after {
+    content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 1px solid var(--red);
+    box-shadow: 0 0 0 6px rgba(251,44,54,0.15), 0 0 0 12px rgba(251,44,54,0.08);
+    animation: locate 2.5s infinite;
+  }
+  @keyframes locate {
+    0%, 100% { box-shadow: 0 0 0 6px rgba(251,44,54,0.15), 0 0 0 12px rgba(251,44,54,0.08); }
+    50% { box-shadow: 0 0 0 10px rgba(251,44,54,0.25), 0 0 0 20px rgba(251,44,54,0.12); }
+  }
+  /* signal */
+  .signal-thumb {
+    background: #0a0a0a;
+    background-image:
+      repeating-linear-gradient(90deg,
+        transparent 0 calc(100% / 40 - 1px),
+        rgba(251,44,54,0.25) calc(100% / 40 - 1px) calc(100% / 40));
+  }
+  .signal-thumb::before {
+    content: ''; position: absolute; inset: 30% 10% 30% 10%;
+    background:
+      linear-gradient(to right,
+        transparent 0%, transparent 15%,
+        #fb2c36 15%, #fb2c36 16%,
+        transparent 16%, transparent 25%,
+        #fb2c36 25%, #fb2c36 28%,
+        transparent 28%, transparent 45%,
+        #fb2c36 45%, #fb2c36 48%,
+        transparent 48%, transparent 62%,
+        #fb2c36 62%, #fb2c36 63%,
+        transparent 63%, transparent 100%);
+    clip-path: polygon(0 50%, 10% 45%, 25% 55%, 35% 20%, 50% 60%, 60% 40%, 75% 30%, 85% 50%, 100% 45%, 100% 100%, 0 100%);
+    opacity: 0.5;
+  }
+
+  .work-body { padding: 18px 20px 20px; flex: 1; display: flex; flex-direction: column; }
+  .work-num {
+    font-family: var(--mono); font-size: 10px; color: var(--red);
+    letter-spacing: 0.2em; margin-bottom: 6px;
+  }
+  .work-title { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; margin-bottom: 6px; }
+  .work-desc { font-size: 13px; color: var(--ink-dim); line-height: 1.5; flex: 1; }
+  .work-meta {
+    margin-top: 14px; display: flex; gap: 10px;
+    font-family: var(--mono); font-size: 10px; color: var(--ink-faint);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .work-meta .coming { color: var(--red); }
+
+  footer {
+    max-width: 1080px; margin: 40px auto 0; padding: 24px 32px 40px;
+    border-top: 1px solid var(--rule);
+    display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 10px; color: var(--ink-faint);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    position: relative; z-index: 2;
+  }
+  footer a { color: var(--ink-faint); text-decoration: none; }
+  footer a:hover { color: var(--red); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">X <em>=</em> Consulting</span>
+  <span class="breadcrumb"><a href="/red/">paths</a><span>›</span>research</span>
+</nav>
+
+<section class="opening">
+  <div class="chapter">[ §007 — path iii · the research ]</div>
+  <h1>Jack of all trades.<br><em>Master</em> of just enough.</h1>
+  <p>Real consulting problems don't respect domain boundaries. A question about solar installation becomes a question about NEC code, which becomes a question about temperature coefficients, which becomes a question about conductor sizing.</p>
+  <p>This path is the interdisciplinary grab-bag — tools built from actual client work, stripped of specifics, made public.</p>
+  <blockquote>
+    "Only an interdisciplinary approach will correctly deal with reality."
+    <cite>— attributed to no one in particular, found on every consulting website, still true anyway</cite>
+  </blockquote>
+  <p>Three works. Each solves a specific problem you may never have — until you do.</p>
+</section>
+
+<div class="works">
+
+  <a class="work" href="/research/photon/">
+    <div class="work-thumb photon-thumb">
+      <svg width="110" height="110" viewBox="0 0 110 110">
+        <circle cx="55" cy="55" r="14" fill="#fb2c36" opacity="0.9"/>
+        <g stroke="#fb2c36" stroke-width="1.5" stroke-linecap="round" opacity="0.8">
+          <line x1="55" y1="10" x2="55" y2="25"/>
+          <line x1="55" y1="85" x2="55" y2="100"/>
+          <line x1="10" y1="55" x2="25" y2="55"/>
+          <line x1="85" y1="55" x2="100" y2="55"/>
+          <line x1="22" y1="22" x2="32" y2="32"/>
+          <line x1="78" y1="78" x2="88" y2="88"/>
+          <line x1="22" y1="88" x2="32" y2="78"/>
+          <line x1="78" y1="32" x2="88" y2="22"/>
+        </g>
+      </svg>
+    </div>
+    <div class="work-body">
+      <div class="work-num">work i · 001</div>
+      <div class="work-title">Photon</div>
+      <div class="work-desc">PV string sizing calculator. NEC 690.7 / 690.8 compliant. Enter module specs and design temperatures; get series/parallel combinations and cold-Voc / hot-Vmp math.</div>
+      <div class="work-meta"><span>engineering</span><span>nec</span></div>
+    </div>
+  </a>
+
+  <div class="work locked">
+    <div class="work-thumb geo-thumb"></div>
+    <div class="work-body">
+      <div class="work-num">work ii · 002</div>
+      <div class="work-title">Geo-forensics</div>
+      <div class="work-desc">What Cloudflare's edge already knows about a visitor: country, data center, ASN, TLS posture, timezone. Pulled from request.cf server-side.</div>
+      <div class="work-meta"><span>edge-data</span><span class="coming">— unlocking soon</span></div>
+    </div>
+  </div>
+
+  <div class="work locked">
+    <div class="work-thumb signal-thumb"></div>
+    <div class="work-body">
+      <div class="work-num">work iii · 003</div>
+      <div class="work-title">Signal</div>
+      <div class="work-desc">Atmospheric data explorer. Pull from free meteorological APIs at the edge, visualize pressure, humidity, wind at ground and altitude.</div>
+      <div class="work-meta"><span>api</span><span class="coming">— unlocking soon</span></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span>path iii of iii · the research</span>
+  <a href="/red/">← back to the paths</a>
+</footer>
+
+</body>
+</html>

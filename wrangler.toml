@@ -1,11 +1,7 @@
 name = "cf-examples"
 compatibility_date = "2025-11-01"
 compatibility_flags = ["nodejs_compat"]
-
 pages_build_output_dir = "."
-
-# ——— bindings shared across examples ———
-# individual examples may override these in their own wrangler.toml
 
 [[kv_namespaces]]
 binding = "KV"
@@ -20,11 +16,5 @@ database_id = "a0a7579e-9b2b-4348-ac39-cadc94cd42df"
 binding = "R2"
 bucket_name = "cf-examples-uploads"
 
-# Workers AI (no id needed — bound by capability)
 [ai]
 binding = "AI"
-
-# Example-specific env vars go in the dashboard as secrets:
-#   TURNSTILE_SECRET  — example 16
-#   PROXY_API_KEY     — example 18
-#   AUTH_SECRET       — example 19

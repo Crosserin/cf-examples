@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The machine · X = Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,wght@1,300&display=swap">
+<style>
+  :root {
+    --bg: #050505; --bg-raised: #0c0c0c; --ink: #fafafa; --ink-dim: #a6a6a6;
+    --ink-faint: #4a4a4a; --rule: #1f1f1f; --red: #fb2c36; --red-deep: #8f1820;
+    --sans: 'Inter', system-ui, sans-serif; --mono: 'JetBrains Mono', monospace;
+    --serif: 'Fraunces', serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink); font-family: var(--sans);
+    min-height: 100vh; -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: radial-gradient(ellipse 80% 50% at 50% -5%, rgba(251,44,54,0.08), transparent 60%);
+  }
+  nav {
+    padding: 20px 32px; display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono); font-size: 11px; color: var(--ink-dim);
+    letter-spacing: 0.08em; text-transform: uppercase; position: relative; z-index: 2;
+  }
+  nav .brand { color: var(--ink); font-weight: 500; }
+  nav .brand em { color: var(--red); font-style: normal; font-weight: 500; }
+  nav .breadcrumb { color: var(--ink-faint); }
+  nav .breadcrumb span { margin: 0 8px; }
+  nav a { color: var(--ink-dim); text-decoration: none; }
+  nav a:hover { color: var(--red); }
+
+  .opening { max-width: 720px; margin: 60px auto 60px; padding: 0 32px; position: relative; z-index: 2; }
+  .chapter {
+    font-family: var(--mono); font-size: 11px; color: var(--red);
+    letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 20px;
+  }
+  h1 {
+    font-weight: 300; font-size: clamp(44px, 7vw, 80px);
+    line-height: 0.95; letter-spacing: -0.03em; margin-bottom: 28px;
+  }
+  h1 em { font-family: var(--serif); font-style: italic; color: var(--ink); font-weight: 300; }
+  .opening p { font-size: 16px; color: var(--ink-dim); line-height: 1.7; margin-bottom: 12px; }
+  .opening pre {
+    font-family: var(--mono); font-size: 12px; color: var(--red);
+    background: #0a0a0a; padding: 14px 18px; border-radius: 4px; margin: 20px 0;
+    border-left: 2px solid var(--red-deep);
+    overflow-x: auto;
+  }
+
+  .works {
+    max-width: 1080px; margin: 0 auto 80px; padding: 0 32px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;
+    position: relative; z-index: 2;
+  }
+  .work {
+    background: var(--bg-raised); border: 1px solid var(--rule);
+    border-radius: 10px; overflow: hidden; text-decoration: none; color: inherit;
+    transition: transform 0.3s, border-color 0.3s;
+    min-height: 280px; display: flex; flex-direction: column;
+  }
+  .work:hover { transform: translateY(-4px); border-color: var(--red-deep); }
+  .work.locked { opacity: 0.5; cursor: not-allowed; }
+  .work.locked:hover { transform: none; border-color: var(--rule); }
+
+  .work-thumb {
+    height: 140px; position: relative; overflow: hidden;
+    border-bottom: 1px solid var(--rule);
+    background: #0a0a0a;
+    display: grid; place-items: center;
+  }
+  .oracle-thumb pre {
+    font-family: var(--mono); font-size: 10px; color: var(--red);
+    line-height: 1.4; text-align: left;
+  }
+  .oracle-thumb .cursor {
+    display: inline-block; width: 6px; height: 10px; background: var(--red);
+    vertical-align: middle; animation: blink 1s step-end infinite;
+    margin-left: 2px;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .sight-thumb {
+    background: repeating-linear-gradient(45deg, #0a0a0a 0 20px, #121212 20px 40px);
+  }
+  .sight-thumb::before {
+    content: ''; position: absolute; inset: 20% 30%;
+    border: 1.5px solid var(--red); border-radius: 4px;
+    animation: scan 3s infinite;
+  }
+  @keyframes scan {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.05); }
+  }
+
+  .ghost-thumb {
+    background-image:
+      radial-gradient(circle at 30% 40%, rgba(251,44,54,0.25) 0%, transparent 20%),
+      radial-gradient(circle at 70% 60%, rgba(251,44,54,0.15) 0%, transparent 25%),
+      radial-gradient(circle at 50% 20%, rgba(251,44,54,0.18) 0%, transparent 18%);
+    background-color: #0a0a0a;
+  }
+
+  .work-body { padding: 18px 20px 20px; flex: 1; display: flex; flex-direction: column; }
+  .work-num {
+    font-family: var(--mono); font-size: 10px; color: var(--red);
+    letter-spacing: 0.2em; margin-bottom: 6px;
+  }
+  .work-title { font-size: 18px; font-weight: 500; letter-spacing: -0.01em; margin-bottom: 6px; }
+  .work-desc { font-size: 13px; color: var(--ink-dim); line-height: 1.5; flex: 1; }
+  .work-meta {
+    margin-top: 14px; display: flex; gap: 10px;
+    font-family: var(--mono); font-size: 10px; color: var(--ink-faint);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .work-meta .coming { color: var(--red); }
+
+  footer {
+    max-width: 1080px; margin: 40px auto 0; padding: 24px 32px 40px;
+    border-top: 1px solid var(--rule);
+    display: flex; justify-content: space-between;
+    font-family: var(--mono); font-size: 10px; color: var(--ink-faint);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    position: relative; z-index: 2;
+  }
+  footer a { color: var(--ink-faint); text-decoration: none; }
+  footer a:hover { color: var(--red); }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">X <em>=</em> Consulting</span>
+  <span class="breadcrumb"><a href="/red/">paths</a><span>›</span>machine</span>
+</nav>
+
+<section class="opening">
+  <div class="chapter">[ §005 — path ii · the machine ]</div>
+  <h1>The machine<br>runs <em>here</em>.</h1>
+  <p>AI is not a distant API call anymore. Cloudflare Workers AI puts Llama, Mistral, ResNet, and embedding models on GPUs inside every major data center on Earth. Your prompts run at the same edge serving this page.</p>
+  <pre>&gt; model: @cf/meta/llama-3.1-8b-instruct
+&gt; inference: on-edge GPU
+&gt; openai key: not required
+&gt; monthly cost: ~$0 at this scale</pre>
+  <p>Three works. Each one talks to a different model.</p>
+</section>
+
+<div class="works">
+
+  <a class="work" href="/machine/oracle/">
+    <div class="work-thumb oracle-thumb">
+      <pre>&gt; awaiting input<span class="cursor"></span></pre>
+    </div>
+    <div class="work-body">
+      <div class="work-num">work i · 001</div>
+      <div class="work-title">The Oracle</div>
+      <div class="work-desc">Streaming chat with Llama 3.1 8B. Tokens arrive as the model generates them. No external API — the whole conversation lives on the edge.</div>
+      <div class="work-meta"><span>streaming</span><span>llama 3.1</span></div>
+    </div>
+  </a>
+
+  <div class="work locked">
+    <div class="work-thumb sight-thumb"></div>
+    <div class="work-body">
+      <div class="work-num">work ii · 002</div>
+      <div class="work-title">Sight</div>
+      <div class="work-desc">Drop an image, get classification tags and a caption from edge vision models. Files land in R2, never leave the Cloudflare network.</div>
+      <div class="work-meta"><span>vision</span><span class="coming">— unlocking soon</span></div>
+    </div>
+  </div>
+
+  <div class="work locked">
+    <div class="work-thumb ghost-thumb"></div>
+    <div class="work-body">
+      <div class="work-num">work iii · 003</div>
+      <div class="work-title">Ghost in the corpus</div>
+      <div class="work-desc">Semantic search over a knowledge base using edge embeddings and Vectorize. Ask anything; the model finds the relevant passages and synthesizes an answer.</div>
+      <div class="work-meta"><span>rag</span><span class="coming">— unlocking soon</span></div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span>path ii of iii · the machine</span>
+  <a href="/red/">← back to the paths</a>
+</footer>
+
+</body>
+</html>

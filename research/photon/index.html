@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photon · the research</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Fraunces:ital,wght@1,300&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+  <span class="brand">X <em>=</em> Consulting</span>
+  <span class="breadcrumb"><a href="/red/">paths</a><span>›</span><a href="/research/">research</a><span>›</span>photon</span>
+</nav>
+
+<section class="opening">
+  <div class="chapter">[ §008 — work i · photon ]</div>
+  <h1>PV string sizing,<br><em>NEC-aware</em>.</h1>
+  <p>Enter your module specs, your inverter's MPPT window, and your design temperatures. Get back valid series/parallel combinations with cold-adjusted Voc and hot-adjusted Vmp, flagged for code compliance. Defaults are a typical residential 400W module and a SolarEdge-class string inverter.</p>
+  <p class="disclaimer"><strong>Design-assist only.</strong> Final permits require a licensed PE and AHJ review. This tool is a starting point, not a stamped deliverable.</p>
+</section>
+
+<div class="layout">
+
+  <form id="form">
+    <fieldset>
+      <legend>Module</legend>
+      <div class="field-row">
+        <div class="field"><label>Voc STC (V)</label><input type="number" step="0.01" id="panel_voc" value="41.8"></div>
+        <div class="field"><label>Vmp STC (V)</label><input type="number" step="0.01" id="panel_vmp" value="34.5"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Isc (A)</label><input type="number" step="0.01" id="panel_isc" value="11.24"></div>
+        <div class="field"><label>Voc TC (%/°C)</label><input type="number" step="0.001" id="panel_voc_tc" value="-0.27"></div>
+      </div>
+      <div class="field"><label>Total modules</label><input type="number" id="panel_count" value="24"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Inverter</legend>
+      <div class="field-row">
+        <div class="field"><label>MPPT min (V)</label><input type="number" id="inverter_mppt_min" value="200"></div>
+        <div class="field"><label>MPPT max (V)</label><input type="number" id="inverter_mppt_max" value="480"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Max DC (V)</label><input type="number" id="inverter_max_voltage" value="600"></div>
+        <div class="field"><label>Max I (A)</label><input type="number" step="0.1" id="inverter_max_current" value="15"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Design temps</legend>
+      <div class="field-row">
+        <div class="field"><label>Min amb (°C)</label><input type="number" id="design_temp_min" value="-12"></div>
+        <div class="field"><label>Max amb (°C)</label><input type="number" id="design_temp_max" value="40"></div>
+      </div>
+    </fieldset>
+
+    <button type="submit">Calculate →</button>
+  </form>
+
+  <div class="results" id="results">
+    <div class="results-empty">Submit the form to see string-sizing results.</div>
+  </div>
+
+</div>
+
+<footer>
+  <a href="/research/">← back to the research</a>
+  <a href="/red/">all three paths</a>
+</footer>
+
+<script>
+  const form = document.getElementById('form');
+  const results = document.getElementById('results');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    results.innerHTML = '<div class="results-empty">calculating…</div>';
+    const payload = {};
+    for (const el of form.querySelectorAll('input')) payload[el.id] = parseFloat(el.value);
+    try {
+      const res = await fetch('api/string-size', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'calculation failed');
+      render(data);
+    } catch (err) {
+      results.innerHTML = `<div class="results-empty" style="color: #f87171">${err.message}</div>`;
+    }
+  });
+
+  function render(d) {
+    const rows = d.combinations.map(c => `
+      <tr class="${c.fits_inverter ? 'fits-yes' : 'fits-no'}">
+        <td>${c.series}</td>
+        <td>${c.parallel}</td>
+        <td>${c.total_modules}</td>
+        <td>${c.voc_cold_string.toFixed(1)} V</td>
+        <td>${c.string_current.toFixed(2)} A</td>
+        <td>${c.fits_inverter ? '<span class="badge ok">fits</span>' : '<span class="badge no">no</span>'}</td>
+      </tr>`).join('');
+
+    results.innerHTML = `
+      <section class="rs">
+        <h3>Headline</h3>
+        <div class="grid">
+          <div class="cell"><span class="k">Min series</span><span class="v">${d.min_series}</span></div>
+          <div class="cell"><span class="k">Max series</span><span class="v">${d.max_series}</span></div>
+          <div class="cell"><span class="k">Recommended</span><span class="v">${d.recommended_series}</span></div>
+          <div class="cell"><span class="k">Voc cold</span><span class="v">${d.voc_cold}<u>V</u></span></div>
+          <div class="cell"><span class="k">Vmp hot</span><span class="v">${d.vmp_hot}<u>V</u></span></div>
+        </div>
+      </section>
+      <section class="rs">
+        <h3>Combinations</h3>
+        ${d.combinations.length === 0
+          ? '<p class="dim">No valid combinations found.</p>'
+          : `<table><thead><tr><th>Series</th><th>Parallel</th><th>Total</th><th>Voc cold</th><th>I string</th><th>Inverter</th></tr></thead><tbody>${rows}</tbody></table>`
+        }
+      </section>
+      ${d.warnings.length > 0 ? `<section class="rs"><h3>Warnings</h3>${d.warnings.map(w => `<div class="warn">${w}</div>`).join('')}</section>` : ''}
+      <section class="rs"><h3>Notes</h3>${d.notes.map(n => `<div class="note">${n}</div>`).join('')}</section>
+    `;
+  }
+</script>
+</body>
+</html>
