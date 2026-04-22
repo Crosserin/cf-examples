@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — X = Consulting</title>
+<meta name="description" content="How X = Consulting handles data collected through our Meta, LinkedIn, and other social-platform integrations.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<nav>
+  <div class="brand">X <em>=</em> Consulting</div>
+  <div class="links">
+    <a href="/legal/privacy.html">Privacy</a> &nbsp;·&nbsp;
+    <a href="/legal/terms.html">Terms</a> &nbsp;·&nbsp;
+    <a href="/legal/data-deletion.html">Data Deletion</a>
+  </div>
+</nav>
+
+<main>
+  <div class="eyebrow">Legal</div>
+  <h1>Privacy Policy</h1>
+  <div class="updated">Last updated: April 22, 2026 · Effective: April 22, 2026</div>
+
+  <h2>Who we are</h2>
+  <p>X = Consulting is a sole-proprietor IT consulting practice owned and operated by Erin Cross, based in Portland, Oregon, United States. We operate the brand identities <strong>@crosserinlabs</strong> across several social platforms and use self-hosted software to schedule and publish content on our own behalf.</p>
+  <p>This policy covers the software application registered with Meta Platforms, Inc. under the name <code>crosserinlabs-postiz</code>, along with any equivalent apps we register with LinkedIn, X (Twitter), Bluesky, Mastodon, or similar services. It describes what data the app handles, why, and how long we keep it.</p>
+
+  <div class="callout">
+    <p><strong>Scope note.</strong> This app is used exclusively to manage content we author and publish through accounts and Pages that we own. We do not offer this application as a service to third parties. If you are not Erin Cross and you are reading this policy as part of a Meta App Review, this app will not be used to access any data belonging to users outside the operator of this app.</p>
+  </div>
+
+  <h2>What data we access</h2>
+  <p>Through our integrations with Meta platforms (Facebook and Instagram) and other social services, our app receives access tokens that permit the following types of data access on accounts <strong>we personally own and operate</strong>:</p>
+
+  <h3>Facebook Pages</h3>
+  <ul>
+    <li>Public profile information for the page administrator (Erin Cross)</li>
+    <li>Email address of the page administrator</li>
+    <li>The list of Facebook Pages the administrator manages</li>
+    <li>Page metadata (name, category, follower count, post engagement metrics)</li>
+    <li>The ability to create, edit, and delete posts on our own Pages</li>
+  </ul>
+
+  <h3>Instagram Business accounts (when connected)</h3>
+  <ul>
+    <li>Basic Instagram profile data for our Business account</li>
+    <li>Permission to publish posts, stories, and reels to our Business account</li>
+    <li>Comment moderation on posts we publish</li>
+    <li>Insight data on our own published content</li>
+  </ul>
+
+  <h3>LinkedIn</h3>
+  <ul>
+    <li>Basic profile data via OpenID Connect (name, email, profile picture)</li>
+    <li>Permission to publish posts to our personal LinkedIn profile</li>
+  </ul>
+
+  <h3>Bluesky, Mastodon, and similar networks</h3>
+  <ul>
+    <li>Account handle and profile information</li>
+    <li>Permission to publish posts</li>
+  </ul>
+
+  <h2>How we use this data</h2>
+  <p>The app uses this data for exactly two purposes:</p>
+  <ol>
+    <li><strong>Authentication.</strong> Access tokens are stored so the app can authenticate to each platform on our behalf without re-prompting every session.</li>
+    <li><strong>Content publishing.</strong> We draft posts in a content-scheduling tool and the app relays them to the chosen platforms at the times we specify.</li>
+  </ol>
+  <p>We do not use this data for advertising, do not sell or rent it, do not share it with third parties, and do not use it to build profiles of any kind. The data collected by the app is used solely to operate the app's core function.</p>
+
+  <h2>Where this data is stored</h2>
+  <p>All app data — access tokens, drafted posts, media uploads, scheduling metadata — is stored on infrastructure we personally operate. Specifically, it lives in an encrypted PostgreSQL database running on a private server in Portland, Oregon. The server is not publicly addressable except through a Cloudflare Zero Trust Tunnel, and the application is accessed over HTTPS only.</p>
+  <p>No app data is stored with any third-party hosting provider, analytics service, or cloud database.</p>
+
+  <h2>How long we retain data</h2>
+  <ul>
+    <li><strong>Access tokens:</strong> retained until they expire per the platform's policy (typically 60 days for Meta, longer or indefinite for others), after which they are automatically refreshed or discarded.</li>
+    <li><strong>Drafted and scheduled posts:</strong> retained until we delete them manually or until 12 months after publication, whichever comes first.</li>
+    <li><strong>Published post records:</strong> kept indefinitely as part of our own content history, unless we delete them.</li>
+    <li><strong>Media uploads:</strong> retained until we manually remove them.</li>
+  </ul>
+
+  <h2>Your rights</h2>
+  <p>Because this app is used only by its sole operator (Erin Cross), the "users" whose rights apply under this policy are the accounts we personally control. We retain full ability to:</p>
+  <ul>
+    <li>Revoke the app's access tokens at any time from within each platform's settings</li>
+    <li>Delete the app's database and all stored data at will</li>
+    <li>Request specific data deletion via the process described at <a href="./data-deletion.html">our data deletion page</a></li>
+  </ul>
+
+  <h2>Data we do not collect</h2>
+  <p>This app does not collect, transmit, or store:</p>
+  <ul>
+    <li>Data from any account other than the operator's</li>
+    <li>Direct messages, private conversations, or any message content</li>
+    <li>Payment or financial information</li>
+    <li>Location data beyond what is publicly attached to posts we author</li>
+    <li>Data about the operator's friends, followers, or connections</li>
+  </ul>
+
+  <h2>Children</h2>
+  <p>This app is not directed to children under 13. It is used by a single adult operator for their own business purposes.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If this policy changes in a meaningful way, we will update the "Last updated" date at the top and, where required, notify Meta and other platforms as part of their ongoing compliance requirements.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy, the data the app handles, or requests to delete specific data:</p>
+  <ul>
+    <li>Email: <a href="mailto:erin@xconsultingwork.com">erin@xconsultingwork.com</a></li>
+    <li>Postal: X = Consulting · Portland, Oregon, United States</li>
+  </ul>
+
+  <footer>
+    <a href="https://cf-examples.erinmichaelcross.com/">← back to cf-examples</a>
+  </footer>
+</main>
+
+</body>
+</html>

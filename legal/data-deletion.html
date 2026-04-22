@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Deletion — X = Consulting</title>
+<meta name="description" content="How to request deletion of data held by X = Consulting's social media integration.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<nav>
+  <div class="brand">X <em>=</em> Consulting</div>
+  <div class="links">
+    <a href="/legal/privacy.html">Privacy</a> &nbsp;·&nbsp;
+    <a href="/legal/terms.html">Terms</a> &nbsp;·&nbsp;
+    <a href="/legal/data-deletion.html">Data Deletion</a>
+  </div>
+</nav>
+
+<main>
+  <div class="eyebrow">Legal</div>
+  <h1>Data Deletion</h1>
+  <div class="updated">Last updated: April 22, 2026</div>
+
+  <p>This page explains how the operator of our social media integration application (registered with Meta Platforms as <code>crosserinlabs-postiz</code>) can request that data the app has received or retained be deleted.</p>
+
+  <div class="callout">
+    <p><strong>Context.</strong> This app is used solely by Erin Cross, as operator of X = Consulting, to manage social media accounts and Pages the operator personally owns. Nobody else has data in the app. This page exists because Meta Platforms requires every app to publish a data deletion URL, regardless of user count.</p>
+  </div>
+
+  <h2>What data the app holds</h2>
+  <p>The application stores the following types of data:</p>
+  <ul>
+    <li>OAuth access tokens issued by platforms (Meta, LinkedIn, Bluesky, Mastodon, etc.)</li>
+    <li>A database of drafted and scheduled posts, authored by the operator</li>
+    <li>Media files (images, video) attached to scheduled posts</li>
+    <li>Metadata about past publishing activity (what was posted, when, where)</li>
+    <li>Basic profile data returned by the platforms during OAuth (name, handle, email)</li>
+  </ul>
+
+  <h2>How to request deletion</h2>
+
+  <h3>Option 1 — Revoke access at the platform level (immediate)</h3>
+  <p>The fastest way to make this app forget about you is to revoke the app's access token directly at the platform. This also invalidates any stored tokens we hold.</p>
+  <ul>
+    <li><strong>Facebook / Instagram:</strong> Settings → Business Integrations → find <code>crosserinlabs-postiz</code> → Remove</li>
+    <li><strong>LinkedIn:</strong> Settings → Data privacy → Permitted services → find our app → Remove</li>
+    <li><strong>Bluesky:</strong> Settings → App passwords → revoke the Postiz password</li>
+    <li><strong>Mastodon:</strong> Preferences → Authorized applications → revoke</li>
+  </ul>
+
+  <h3>Option 2 — Email request (full data wipe)</h3>
+  <p>To request that all data associated with a specific account (platform handle or email address) be purged from the application's database, send an email to <a href="mailto:erin@xconsultingwork.com">erin@xconsultingwork.com</a> with the subject line <strong>"Data deletion request"</strong>.</p>
+  <p>In the email, include:</p>
+  <ul>
+    <li>The platform the data relates to (Facebook, Instagram, LinkedIn, etc.)</li>
+    <li>The account handle, email, or other identifier associated with the data</li>
+    <li>A short confirmation that you are the authorized owner of that account</li>
+  </ul>
+
+  <h2>Confirmation timeline</h2>
+  <ul>
+    <li>We respond to deletion requests within <strong>7 business days</strong>.</li>
+    <li>Once we confirm the request, all associated data is removed from the application's database and any active backups within 30 days.</li>
+    <li>We will reply with a confirmation code so you can reference the request if needed.</li>
+  </ul>
+
+  <h2>Confirmation code format</h2>
+  <p>If Meta Platforms or another service needs a confirmation code format for their records, our codes follow the pattern <code>DEL-YYYYMMDD-XXXX</code>, where <code>XXXX</code> is a short random string. For example: <code>DEL-20260422-A3F7</code>.</p>
+
+  <h2>What can't be deleted</h2>
+  <p>A few items are outside the app's control:</p>
+  <ul>
+    <li>Posts that have already been published to third-party platforms live on those platforms according to the platform's own retention rules. We can delete the app's record of them, but we cannot remove them from, e.g., Facebook's servers. Use each platform's own delete-post flow for that.</li>
+    <li>Platform-side analytics data that Meta, LinkedIn, etc. collected during normal operation is subject to those platforms' own data policies and deletion flows.</li>
+  </ul>
+
+  <h2>Contact</h2>
+  <p>Questions about data deletion: <a href="mailto:erin@xconsultingwork.com">erin@xconsultingwork.com</a></p>
+
+  <footer>
+    <a href="https://cf-examples.erinmichaelcross.com/">← back to cf-examples</a>
+  </footer>
+</main>
+
+</body>
+</html>
